@@ -1,0 +1,27 @@
+{
+  "name": "easy_api",
+  "version": "1.0.0",
+  "description": "Easy communcation between a modern front-end application & a RESTful API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eitje-app/easy_api.git"
+  },
+  "author": "Abel van Hoek",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eitje-app/easy_api/issues"
+  },
+  "homepage": "https://github.com/eitje-app/easy_api#readme",
+
+  "devDependencies": {
+    "@babel/preset-env": "^7.12.1",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-latest": "^6.24.1",
+    "babel-preset-react": "^6.24.1"
+  }
+}
