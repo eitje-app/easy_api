@@ -10,51 +10,57 @@ let api;
 
 const createApi = () => {
     api = create({ 
-    baseURL,
+    baseURL: config.baseURL,
     headers: {'Content-Type': 'application/json', 
               'credentials': 'same-origin', 
               "Access-Control-Allow-Origin": "*",
              },
-   ...apiConfig
+   ...config.apiConfig
     })
+
+    api.addAsyncRequestTransform(request => setVersion(request))
+    api.addAsyncRequestTransform(request => changeTokenHeader(request))
+    api.addRequestTransform(request => startLoad(request))
+
+    api.addMonitor(authMonitor)
+    // 
+    api.addMonitor(endLoad)
+    api.addMonitor(handleErrors)
+
     return api;
 }
 
 
 async function changeTokenHeader(req) {
   if(req.url !== "oauth/token" && req.url !== 'auth' && req.url !== 'users/sign_up' && req.url !== 'auth/confirmed') {
-    const token = await getRefreshToken();
+    const token = await refreshTokenIfNeeded();
     if(token) {
-      if(req.data) req.data['access_token'] = token
-      if(req.params) req.params['access_token'] = token
-      if(!req.data && !req.params) {
-        req.data = {access_token: token}
-      }
+      if(!req.params) req.params = {}
+      if(req.params) req.params['access_token'] = token;
     }
   }
 }
 
-
 async function setVersion(req) {
   if(!req.params) req.params = {}
-  req.params['version'] = version
+  req.params['version'] = config.version
 }
 
 const authMonitor = res => {
   if( (res.status === 401 || res.status === 400) && !res.config.url.match(/auth/) ) {
-    logout()
+    config.logout()
   }
 }
 
 const startLoad = req => {
   if(req.method !== 'get' && (!req.data || !req.data.doNotLoad  ) ) {
-    store && store.dispatch({type: 'START_LOADING'})
+    config.store && config.store.dispatch({type: 'START_LOADING'})
   }
 }
 
 const endLoad = req => {
   if(req.config.method !== 'get' ) {
-    store.dispatch({type: 'STOP_LOADING'})
+   config.store.dispatch({type: 'STOP_LOADING'})
   }
 }
 
@@ -68,7 +74,7 @@ function setErrors(errors) {
   else {
     err = t("unexpectedIssue")
   }
-  alert(t("oops"), err)
+  config.alert(config.t("oops"), err)
   }
 
 
@@ -79,23 +85,15 @@ function handleErrors(res) {
     setErrors(errs)
   } else {
     if(res.status < 402) return;
-      alert(t("oops"), t("unexpectedIssue"))
+      config.alert(config.t("oops"), config.t("unexpectedIssue"))
   }
   
 }
 
 
-api.addAsyncRequestTransform(request => setVersion(request))
-api.addAsyncRequestTransform(request => changeTokenHeader(request))
-api.addRequestTransform(request => startLoad(request))
-
-api.addMonitor(authMonitor)
-// api.addMonitor(Reactotron.apisauce)
-api.addMonitor(endLoad)
-api.addMonitor(handleErrors)
-////
 
 
 export default createApi;
+export {api}
 
 

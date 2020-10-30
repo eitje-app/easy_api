@@ -1,5 +1,5 @@
 {
-  "name": "easy_api",
+  "name": "@eitje/easy_api",
   "version": "1.0.0",
   "description": "Easy communcation between a modern front-end application & a RESTful API",
   "main": "index.js",

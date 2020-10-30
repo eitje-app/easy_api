@@ -1,4 +1,4 @@
-import backend from './backend'
+import {api as backend} from './backend'
 import utils from '@eitje/utils'
 import {config} from './config'
 import _ from 'lodash'
@@ -15,7 +15,7 @@ const handleErrors = data => {
 
 
 export async function index(kind, {ignoreStamp, inverted, localKind, refresh, localForce, ignoreDelStamp, userFilter, filters, params = {} } = {}) {
-  const url = indexUrls[kind] ? indexUrls[kind]() : kind
+  const url = config.indexUrls[kind] ? config.indexUrls[kind]() : kind
   const camelKind = utils.snakeToCamel(kind)
   const createKind = localKind || camelKind
   const lastUpdatedStamp = (ignoreStamp || refresh) ? null : getStamp(camelKind, createKind, params, inverted)
@@ -30,7 +30,7 @@ export async function index(kind, {ignoreStamp, inverted, localKind, refresh, lo
     const hasForce = force || localForce || refresh
     if(items.length > 0 || hasForce) {
       mappedItems = afterIndex(kind, items, {localKind: camelKind})
-      store.dispatch({type: 'INDEX_ENTITIES', force: hasForce, items: mappedItems, 
+      config.store.dispatch({type: 'INDEX_ENTITIES', force: hasForce, items: mappedItems, 
                       deletedStamp: deleted_stamp, kind: createKind, delKind: camelKind })
     }
     return {...res, items: mappedItems};
@@ -65,7 +65,7 @@ export async function add(kind, params, {localKind, extraParams = {}, local = tr
   const standardUrl = isCreate ? kind : `${kind}/${params.id}`
   const obj = getParams(kind, params)
 
-  const urls = isCreate ? createUrls : updateUrls
+  const urls = isCreate ? config.createUrls : config.updateUrls
   const url = urls[kind] ? urls[kind](params["id"]) : standardUrl
   
   const finalParams = {...obj, ...extraParams}
@@ -75,7 +75,7 @@ export async function add(kind, params, {localKind, extraParams = {}, local = tr
   if(res.ok && res.data && res.data.item) {
     const {item} = res.data
     const createKind = localKind || kind
-    afterAdd(kind, item, params)
+    config.afterAdd(kind, item, params)
     createLocal(createKind, item)
     return {ok: true, item}
   } else {
@@ -87,7 +87,7 @@ export const create = add;
 export const update = add;
 
 export async function destroy(kind, id, extraParams = {}) {
-  const url = deleteUrls[kind] ? deleteUrls[kind](id) : `${kind}/${id}`
+  const url = config.deleteUrls[kind] ? config.deleteUrls[kind](id) : `${kind}/${id}`
   const res = await backend.delete(url)
   if(res.ok) {
     destroyLocal(kind, id, extraParams)
@@ -136,7 +136,7 @@ export async function addMulti(kind, params, {extraParams = {}, showSucc = true}
   if(res.ok) {
     const json = res.data
     const {items} = json
-    store.dispatch({type: 'ADD_ENTITIES', items: items, kind: utils.snakeToCamel(kind)})
+    config.store.dispatch({type: 'ADD_ENTITIES', items: items, kind: utils.snakeToCamel(kind)})
     return true
   }
   return false;
@@ -152,22 +152,22 @@ const getParams = (kind, params) => {
 export async function createMultiLocal(kind, items, {localKind} = {}) {
   if(items.length === 0) return;
   const actKind = localKind || kind
-  store.dispatch({type: 'LOCAL_INDEX_ENTITIES', items, kind: utils.snakeToCamel(actKind)})
+  config.store.dispatch({type: 'LOCAL_INDEX_ENTITIES', items, kind: utils.snakeToCamel(actKind)})
 }
 
 export async function createLocal(kind, params) {
-  store.dispatch({type: 'UPDATE_ENTITY', item: {...params, indexed: false}, kind: utils.snakeToCamel(kind)})
+  config.store.dispatch({type: 'UPDATE_ENTITY', item: {...params, indexed: false}, kind: utils.snakeToCamel(kind)})
 }
 
 export async function updateMultiPartial(kind, params) { // params is [{id: 3, ...fields}, ..]
   const state = store.getState()
-  const items = utils.findAndReplace({oldItems: state.newEntities[kind], newItems: params})
+  const items = utils.findAndReplace({oldItems: state.entities[kind], newItems: params})
   createMultiLocal(kind, items)
 }
 
 export async function updatePartial(kind, id, params) {
-  const state = store.getState()
-  const items = state.newEntities[kind]
+  const state = config.store.getState()
+  const items = state.entities[kind]
   const item = items.find(i => i.id === id)
   item && createLocal(kind, {...item, ...params})
 }
@@ -176,14 +176,14 @@ export async function updatePartial(kind, id, params) {
 
 export async function destroyLocal(kind, id, {localKind} = {}) {
   const actKind = localKind || kind
-  store.dispatch({type: 'DELETE_ENTITY', id, kind: utils.snakeToCamel(actKind)})
+  config.store.dispatch({type: 'DELETE_ENTITY', id, kind: utils.snakeToCamel(actKind)})
 }
 
 
 
 export async function removeRelaton(kind, id, relName, value) {
-  const state = store.getState()
-  const items = state.newEntities[kind]
+  const state = config.store.getState()
+  const items = state.entities[kind]
   const item = items.find(i => i.id === id)
   item && createLocal(kind, {...item, [relName]: item[relName].filter(v => v != value)  })
 }
