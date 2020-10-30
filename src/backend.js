@@ -6,16 +6,19 @@ import _ from 'lodash'
 
 
 const {t, version, store, baseURL, logout, getRefreshToken, alert, apiConfig} = config
+let api;
 
-const api = create({ 
-  baseURL,
-  headers: {'Content-Type': 'application/json', 
-            'credentials': 'same-origin', 
-            "Access-Control-Allow-Origin": "*",
-           },
- ...apiConfig
-})
-
+const createApi = () => {
+    api = create({ 
+    baseURL,
+    headers: {'Content-Type': 'application/json', 
+              'credentials': 'same-origin', 
+              "Access-Control-Allow-Origin": "*",
+             },
+   ...apiConfig
+    })
+    return api;
+}
 
 
 async function changeTokenHeader(req) {
@@ -55,9 +58,6 @@ const endLoad = req => {
   }
 }
 
-
-
-
 function setErrors(errors) {
   const hasError = _.isObject(errors) && Object.keys(errors).length > 0
   let err;
@@ -71,7 +71,6 @@ function setErrors(errors) {
   alert(t("oops"), err)
   }
 
-  //GET THE NULLISH COALESCING OUT!
 
 function handleErrors(res) {
   if(res.status < 400) return;
@@ -97,6 +96,6 @@ api.addMonitor(handleErrors)
 ////
 
 
-export default api;
+export default createApi;
 
 

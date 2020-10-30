@@ -1,4 +1,4 @@
-const noop = () => {}
+const noop = i => i
 let empty = {}
 const translator = t => t
 const baseURL = "http://localhost:3000"
