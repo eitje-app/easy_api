@@ -24,8 +24,6 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.12.1",
     "@babel/plugin-proposal-optional-chaining": "^7.12.1",
     "@babel/preset-env": "^7.12.1",
-    "@babel/preset-react": "^7.12.1",
-    "babel-preset-latest": "^6.24.1",
-    "babel-preset-react": "^6.24.1"
+    "@babel/preset-react": "^7.12.1"
   }
 }

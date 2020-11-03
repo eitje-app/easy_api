@@ -1,5 +1,7 @@
 import {setup, config} from './config'
 import initApi, {backend} from './backend'
 import * as API from './api'
+import reducer from './reducer'
+export {setup, initApi, API, backend, config, reducer}
 
-export {setup, initApi, API, backend, config}
+Object.assign(module.exports, require('./selectors'));

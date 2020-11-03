@@ -10,14 +10,14 @@ export const filterRelevant = (kind, items, extraParams = {}) => {
 
 export const getDelStamp = kind => {
   const state = config.store.getState()
-  return state.entities.deletedStamps[kind]
+  return state.records.deletedStamps[kind]
 }
 
 export const getStamp = (kind, localKind, extraParams, inverted) => {
   const func = inverted ? 'getMin' : 'getMax'
   const state = config.store.getState()
   const field = config.stampFields[kind] || 'updated_at'
-  let items = state.entities[localKind]
+  let items = state.records[localKind]
   if(!items || items.length === 0) return;
   items = filterRelevant(kind, items.filter(i => i.indexed), extraParams, state.auth.user.id)
   const item = utils[func](items, field)

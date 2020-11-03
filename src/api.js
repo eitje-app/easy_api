@@ -30,7 +30,7 @@ export async function index(kind, {ignoreStamp, inverted, localKind, refresh, lo
     const hasForce = force || localForce || refresh
     if(items.length > 0 || hasForce) {
       mappedItems = afterIndex(kind, items, {localKind: camelKind})
-      config.store.dispatch({type: 'INDEX_ENTITIES', force: hasForce, items: mappedItems, 
+      config.store.dispatch({type: 'INDEX_RECORDS', force: hasForce, items: mappedItems, 
                       deletedStamp: deleted_stamp, kind: createKind, delKind: camelKind })
     }
     return {...res, items: mappedItems};
@@ -136,7 +136,7 @@ export async function addMulti(kind, params, {extraParams = {}, showSucc = true}
   if(res.ok) {
     const json = res.data
     const {items} = json
-    config.store.dispatch({type: 'ADD_ENTITIES', items: items, kind: utils.snakeToCamel(kind)})
+    config.store.dispatch({type: 'ADD_RECORDS', items: items, kind: utils.snakeToCamel(kind)})
     return true
   }
   return false;
@@ -152,7 +152,7 @@ const getParams = (kind, params) => {
 export async function createMultiLocal(kind, items, {localKind} = {}) {
   if(items.length === 0) return;
   const actKind = localKind || kind
-  config.store.dispatch({type: 'LOCAL_INDEX_ENTITIES', items, kind: utils.snakeToCamel(actKind)})
+  config.store.dispatch({type: 'LOCAL_INDEX_RECORDS', items, kind: utils.snakeToCamel(actKind)})
 }
 
 export async function createLocal(kind, params) {
@@ -161,13 +161,13 @@ export async function createLocal(kind, params) {
 
 export async function updateMultiPartial(kind, params) { // params is [{id: 3, ...fields}, ..]
   const state = store.getState()
-  const items = utils.findAndReplace({oldItems: state.entities[kind], newItems: params})
+  const items = utils.findAndReplace({oldItems: state.records[kind], newItems: params})
   createMultiLocal(kind, items)
 }
 
 export async function updatePartial(kind, id, params) {
   const state = config.store.getState()
-  const items = state.entities[kind]
+  const items = state.records[kind]
   const item = items.find(i => i.id === id)
   item && createLocal(kind, {...item, ...params})
 }
@@ -183,12 +183,17 @@ export async function destroyLocal(kind, id, {localKind} = {}) {
 
 export async function removeRelaton(kind, id, relName, value) {
   const state = config.store.getState()
-  const items = state.entities[kind]
+  const items = state.records[kind]
   const item = items.find(i => i.id === id)
   item && createLocal(kind, {...item, [relName]: item[relName].filter(v => v != value)  })
 }
 
-
+export const clearCache = (name, deletedKinds = [name]) => {
+  const stamps = {}
+  deletedKinds.forEach(k => stamps[k] = undefined)
+  store.dispatch({type: 'CLEAR_CACHE', kind: name, deletedStamps: stamps})
+  // utils.toast(t("success"))
+}
 
 
 
