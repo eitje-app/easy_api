@@ -1,6 +1,5 @@
 import {config} from './config'
 import {create} from 'apisauce'
-import {refreshTokenIfNeeded} from 'actions/auth'
 import utils from '@eitje/utils'
 import _ from 'lodash'
 
@@ -33,7 +32,7 @@ const createApi = () => {
 
 async function changeTokenHeader(req) {
   if(req.url !== "oauth/token" && req.url !== 'auth' && req.url !== 'users/sign_up' && req.url !== 'auth/confirmed') {
-    const token = await refreshTokenIfNeeded();
+    const token = await getRefreshToken();
     if(token) {
       if(!req.params) req.params = {}
       if(req.params) req.params['access_token'] = token;
