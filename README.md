@@ -2,7 +2,7 @@
 
 It exports a few things, the most important being 'API'.
 
-### API:
+## API:
 
 API handles quite a bit: 
 - it knows about the RESTful structure of our back-end and thus knows which endpoints map to which actions.
@@ -33,7 +33,7 @@ Second argument is an object with possible keys:
 
 
 
-## Create/Update:
+### Create/Update:
 
 Create/update share the exact same parameters. The first argument is kind, the second 'params' (the data you wanna send) which is automatically converted to Rails' strong parameter style, as: `{record_name: data}` and the third is an object again with all other options:
 
@@ -45,7 +45,7 @@ Create/update share the exact same parameters. The first argument is kind, the s
 | extraParams | extra params which will be inserted at the top level  | {}    |
 
 
-## Destroy:
+### Destroy:
 
 Destroy takes an id as a second argument, and accepts an object with as only key extraParams to be included at the top-level of your data.
 
@@ -54,16 +54,81 @@ Destroy takes an id as a second argument, and accepts an object with as only key
 Examples:
 
 `const users = API.index("users") ## will get only new users`
-`const users = API.index("users", {refresh: true}) ## will reset the redux store and fetch all fresh records from back-end`
+
+`const users = API.index("users", {refresh: true}) ## will reset the redux store and fetch all fresh users from the back-end`
 
 
 
 `const newUser = API.create("users", {name: 'Amazing guy', fat: false})`
 
-`const updatedUser = API.update("users", {id: 4, name: 'Fatty guy', fat: true}) ## you have to insert the ID when updating`
+`const updatedUser = API.update("users", {id: 4, fat: true}) ## you have to insert the ID when updating`
 
 
 `API.destroy("users", 1) # destroy always goes by id`
+
+
+## backend:
+
+ Backend is actually just an apisauce instance, with which you can do everything you can do with apisauce. 
+ It adds a few niceties: 
+ - Headers needed for JSON communication
+ - Auto inserting of access token
+ - Dispatching start_load & end_load to the store for every non-get request so you can show a loading indicator
+ - Handles & displays errors
+ 
+ 
+ ## selectors:
+ 
+ It exports a few selectors for easy interaction with your redux store. All selectors take the store as the first argument and the kind as the second argument.
+ The most important are:
+ 
+ #### find:
+   Find a record by a query (NOTE: is like Rails' find_by)
+   
+ `useSelector(state => find(state, 'users', {id: 4}) ## gets user 4`
+ 
+  `useSelector(state => find(state, 'users', {activated: true, name: 'Jordan'}) ## gets user who's actived and whose name is Jordan`
+  
+  #### where:
+  
+  Identical to find in usage but returns multiple records
+  
+  ### all:
+  Returns all records for a given kind
+  `useSelector(state => all(state, 'users')`
+  
+  ### betweenDays:
+  
+  Takes an object as third parameter with **start** and **end** as keys and returns all records within that date range.
+  
+  `useSelector(state => all(state, 'posts', {start: "2020-01-01", end: "2020-12-31"})`
+  
+  **NOTE**: for this to work, your record should have a 'date' field.
+  
+  
+  ### includes:
+  
+  Returns all records with at least one match, useful for finding associated records & querying array fields.
+  
+  `useSelector(state => includes(state, 'users', {team_ids: [1]})` Will return all users who have 1 in their team_ids array.
+  
+  **NOTE**: where would find all users whose team_ids value is EXACTLY EQUAL to [1]
+  
+  
+ 
+  
+   
+  
+  
+  
+  
+  
+
+ 
+ 
+
+
+
 
 
 
