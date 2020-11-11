@@ -156,7 +156,7 @@ export async function createMultiLocal(kind, items, {localKind} = {}) {
 }
 
 export async function createLocal(kind, params) {
-  config.store.dispatch({type: 'UPDATE_ENTITY', item: {...params, indexed: false}, kind: utils.snakeToCamel(kind)})
+  config.store.dispatch({type: 'UPDATE_RECORD', item: {...params, indexed: false}, kind: utils.snakeToCamel(kind)})
 }
 
 export async function updateMultiPartial(kind, params) { // params is [{id: 3, ...fields}, ..]
@@ -176,7 +176,7 @@ export async function updatePartial(kind, id, params) {
 
 export async function destroyLocal(kind, id, {localKind} = {}) {
   const actKind = localKind || kind
-  config.store.dispatch({type: 'DELETE_ENTITY', id, kind: utils.snakeToCamel(actKind)})
+  config.store.dispatch({type: 'DELETE_RECORD', id, kind: utils.snakeToCamel(actKind)})
 }
 
 
