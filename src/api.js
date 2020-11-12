@@ -14,8 +14,13 @@ const handleErrors = data => {
 }
 
 
+const funcOrValue = (val, arg) => _.isFunction(val) ? val(arg) : val
+
+
 export async function index(kind, {ignoreStamp, inverted, localKind, refresh, localForce, ignoreDelStamp, userFilter, filters, params = {} } = {}) {
-  const url = config.indexUrls[kind] ? config.indexUrls[kind]() : kind
+  const url = config.indexUrls[kind] ? funcOrValue(config.indexUrls[kind]) : kind
+
+
   const camelKind = utils.snakeToCamel(kind)
   const createKind = localKind || camelKind
   const lastUpdatedStamp = (ignoreStamp || refresh) ? null : getStamp(camelKind, createKind, params, inverted)
@@ -66,8 +71,7 @@ export async function add(kind, params, {localKind, extraParams = {}, local = tr
   const obj = getParams(kind, params)
 
   const urls = isCreate ? config.createUrls : config.updateUrls
-  const url = urls[kind] ? urls[kind](params["id"]) : standardUrl
-  
+  const url = urls[kind] ? funcOrValue(urls[kind], params["id"]) : standardUrl
   const finalParams = {...obj, ...extraParams}
   
   const res = await meth(url, finalParams)
@@ -87,7 +91,7 @@ export const create = add;
 export const update = add;
 
 export async function destroy(kind, id, extraParams = {}) {
-  const url = config.deleteUrls[kind] ? config.deleteUrls[kind](id) : `${kind}/${id}`
+  const url = config.deleteUrls[kind] ? funcOrValue(config.deleteUrls[kind], id) : `${kind}/${id}`
   const res = await backend.delete(url)
   if(res.ok) {
     destroyLocal(kind, id, extraParams)
