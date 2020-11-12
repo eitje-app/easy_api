@@ -43,7 +43,6 @@ export async function index(kind, {ignoreStamp, inverted, localKind, refresh, lo
 
   }
     return res;
-  
 }
 
 export async function updateMulti(kind, params, {localKind, extraParams, saveLocal = true}) {
@@ -59,9 +58,17 @@ export async function updateMulti(kind, params, {localKind, extraParams, saveLoc
    else {
     return {ok: false}
   }
-
 }
 
+export async function show(kind, id, {extraParams = {}, localKind} = {} ) {
+  const res = await backend.get(`${kind}/${id}`, extraParams)
+  if(res.ok && res.data && res.data.item) {
+    const {item} = res.data
+    const createKind = localKind || kind
+    createLocal(createKind, item)
+    return {ok: true, item}
+  }
+}
 
 export async function add(kind, params, {localKind, extraParams = {}, local = true} = {}) {
   
