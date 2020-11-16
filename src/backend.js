@@ -3,8 +3,6 @@ import {create} from 'apisauce'
 import utils from '@eitje/utils'
 import _ from 'lodash'
 
-
-const {t, version, store, baseURL, logout, getRefreshToken, alert, apiConfig} = config
 let api;
 
 const createApi = () => {
@@ -29,10 +27,9 @@ const createApi = () => {
     return api;
 }
 
-
 async function changeTokenHeader(req) {
   if(req.url !== "oauth/token" && req.url !== 'auth' && req.url !== 'users/sign_up' && req.url !== 'auth/confirmed') {
-    const token = await getRefreshToken();
+    const token = await config.getRefreshToken();
     if(token) {
       if(!req.params) req.params = {}
       if(req.params) req.params['access_token'] = token;
