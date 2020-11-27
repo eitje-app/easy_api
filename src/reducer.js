@@ -29,11 +29,13 @@ export default function reduce(state = initialState, action) {
   switch (action.type) {
 
     case 'RESET_RECORDS':
-      const keepRecords = _.pick(state, (action.keep || []) )
-      console.log(keepRecords)
+      const toKeep = action.keep || []
+      const keepRecords = _.pick(state, toKeep )
+      const keepStams = _.pick(state.deletedStamps, toKeep )
       return {
         ...initialState,
-        ...keepRecords
+        ...keepRecords,
+        deletedStamps: keepStams
       }
 
     case 'CLEAR_CACHE':

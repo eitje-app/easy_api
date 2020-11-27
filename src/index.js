@@ -1,8 +1,9 @@
 import {setup, config} from './config'
-import initApi, {api} from './backend'
+import initApi, {api as backend} from './backend'
 import * as API from './api'
 import reducer from './reducer'
-const backend = api;
-export {setup, initApi, API, backend, config, reducer}
 
+export {setup, initApi, API, backend, config, reducer}
+console.log("HELLO I IZ API")
 Object.assign(module.exports, require('./selectors'));
+Object.assign(module.exports, require('./actions'));

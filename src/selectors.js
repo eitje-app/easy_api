@@ -4,14 +4,16 @@ import _ from 'lodash'
 import moment from 'moment'
 import utils from '@eitje/utils'
 import {findRecord, filterRecord, includesRecord, filterByDate} from './actions'
+import {config} from './config'
 
 const authUserSelector = state => state.auth.user
 const usersSelector = state => state.records.users
 
+
 export const all = createCachedSelector(
   state => state.records,
   (state, key) => key,
-  (ents, key) => ents[key] || []
+  (ents, key) => config.enrichRecords(ents, key) || ents[key] || []
 )(
   (ents, key) => key
 )

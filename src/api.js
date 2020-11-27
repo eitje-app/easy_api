@@ -107,16 +107,40 @@ export async function destroy(kind, id, extraParams = {}) {
   return res;
 }
 
-export async function addManyToMany(kind, params = {}, {extraParams = {}} = {} ) {
+export async function updateAssoc(kind, params = {}, {extraParams = {}, add = true } = {}) {
   const obj = getParams(kind, params)
-  const url = `${kind}/${params.id}/add_relation`
-  const res = await backend.post(url, obj)
+  const endPoint = add ? 'assoc' : 'remove_assoc'
+  const url = `${kind}/${params.id}/${endPoint}`
+  const res = await backend.put(url, obj)
   if(res.ok) {
     const {item} = res.data
+    config.afterAdd(kind, item, params)
     createLocal(kind, item)
+    return {ok: true, item}
   }
-  return res;
 }
+
+export async function removeAssoc(kind, params, rest = {}) {
+  return updateAssoc(kind, params, {...rest, add: false})
+}
+
+export async function addAssoc(kind, params = {}, rest = {} ) {
+  return updateAssoc(kind, params, {...rest, add: true})
+}
+
+
+export async function arbitrary(kind, url, {method = 'post', params = {}}) {
+  const res = await backend.any({method, url, params})
+  if(res.ok) {
+    const {item} = res.data
+    if(item) {
+      createLocal(kind, item)
+    } else if (items) {
+      createMultiLocal(kind, items)
+    }
+  }
+}
+
 
 export async function toggle(kind, params, {extraParams = {}} = {}) {
   const obj = getParams(kind, params)
@@ -155,6 +179,7 @@ export async function addMulti(kind, params, {extraParams = {}, showSucc = true}
 
 
 
+
 const getParams = (kind, params) => {
   const sing = pluralize.singular(kind)
   return {[sing]: params}
@@ -189,6 +214,7 @@ export async function destroyLocal(kind, id, {localKind} = {}) {
   const actKind = localKind || kind
   config.store.dispatch({type: 'DELETE_RECORD', id, kind: utils.snakeToCamel(actKind)})
 }
+
 
 
 
