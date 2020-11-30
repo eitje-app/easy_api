@@ -107,12 +107,46 @@ export async function destroy(kind, id, extraParams = {}) {
   return res;
 }
 
+// {user_ids: [3,4,5]} => {user_ids: {added: [], removed: []} }
+
+const getAssocDiff = (newIds = [], oldIds = []) => {
+  const removed = oldIds.filter(id => !newIds.includes(id))
+  const added = newIds.filter(id => !oldIds.includes(id))
+  return {added, removed}
+}
+
+const makeAssocParams = (newAssocs, oldAssocs) => {
+  const obj = {}
+  const updateKeys = Object.keys(newAssocs)
+  updateKeys.forEach(key => {
+    obj[key] = getAssocDiff(newAssocs[key], oldAssocs[key])
+  })
+  return obj
+}
+
+export async function addRemoveAssoc(kind, newAssocs, oldAssocs, id) {
+  const params = makeAssocParams(newAssocs, oldAssocs)
+  const obj = getParams(kind, params)
+  const res = await backend.put(`${kind}/${id}/add_remove_assoc`, obj)
+  return handleRes(res, kind, params)
+}
+
+
 export async function updateAssoc(kind, params = {}, {extraParams = {}, add = true } = {}) {
   const obj = getParams(kind, params)
   const endPoint = add ? 'assoc' : 'remove_assoc'
   const url = `${kind}/${params.id}/${endPoint}`
   const res = await backend.put(url, obj)
   if(res.ok) {
+    const {item} = res.data
+    config.afterAdd(kind, item, params)
+    createLocal(kind, item)
+    return {ok: true, item}
+  }
+}
+
+const handleRes = (res, kind, params) => {
+  if(res.ok && res.data) {
     const {item} = res.data
     config.afterAdd(kind, item, params)
     createLocal(kind, item)
