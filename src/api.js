@@ -163,14 +163,17 @@ export async function addAssoc(kind, params = {}, rest = {} ) {
 }
 
 
-export async function arbitrary(kind, url, {method = 'post', params = {}}) {
-  const res = await backend.any({method, url, params})
+export async function arbitrary(kind, url, {method = 'POST', params}) {
+  const res = await backend.any({method, url, data: params})
+  // const res = await backend.post(url, params)
   if(res.ok) {
-    const {item} = res.data
+    const {item, items} = res.data
     if(item) {
       createLocal(kind, item)
+      return {ok: true, item}
     } else if (items) {
       createMultiLocal(kind, items)
+      return {ok: true, items}
     }
   }
 }
