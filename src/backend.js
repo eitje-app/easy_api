@@ -23,6 +23,7 @@ const createApi = () => {
     // 
     api.addMonitor(endLoad)
     api.addMonitor(handleErrors)
+    if(config.reportSuccess) api.addMonitor(reportSuccess);
 
     return api;
 }
@@ -42,6 +43,8 @@ async function setVersion(req) {
   req.params['version'] = config.version
 }
 
+
+
 const authMonitor = res => {
   if( (res.status === 401 || res.status === 400) && !res.config.url.match(/auth/) ) {
     config.logout()
@@ -49,7 +52,8 @@ const authMonitor = res => {
 }
 
 const startLoad = req => {
-  if(req.method !== 'get' && (!req.data || !req.data.doNotLoad  ) ) {
+  const isMultiPart = req.headers['Content-Type'] === 'multipart/form-data'
+  if(req.method !== 'get' && !isMultiPart && (!req.data || !req.data.doNotLoad  ) ) {
     config.store && config.store.dispatch({type: 'START_LOADING'})
   }
 }
@@ -71,11 +75,16 @@ function setErrors(errors) {
     err = t("unexpectedIssue")
   }
   config.alert(config.t("oops"), err)
-  }
+}
 
 
 function handleErrors(res) {
+  const {t, alert} = config
   if(res.status < 400) return;
+  if(res.status === 403) {
+    alert(t("oops"), t("unauthorized"))
+    return
+  }
   const errs = res.data || res.errors
   if(errs && !errs?.exception) {
     setErrors(errs)
@@ -84,6 +93,13 @@ function handleErrors(res) {
       config.alert(config.t("oops"), config.t("unexpectedIssue"))
   }
   
+}
+
+
+function reportSuccess(req) {
+  if(req.config.method != 'get' && req.status <= 300) {
+    config.success();
+  }
 }
 
 

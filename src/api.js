@@ -45,7 +45,7 @@ export async function index(kind, {ignoreStamp, inverted, localKind, refresh, lo
     return res;
 }
 
-export async function updateMulti(kind, params, {localKind, extraParams, saveLocal = true}) {
+export async function updateMulti(kind, params, {localKind, extraParams, saveLocal = true} = {}) {
   const res = await backend.post(`${kind}/multi_update`, {items: params, ...extraParams})
   if(res.ok && res.items) {
     const {items} = res.data
@@ -162,13 +162,13 @@ export async function addAssoc(kind, params = {}, rest = {} ) {
   return updateAssoc(kind, params, {...rest, add: true})
 }
 
-
 export async function arbitrary(kind, url, {method = 'POST', params}) {
   const res = await backend.any({method, url, data: params})
   // const res = await backend.post(url, params)
   if(res.ok) {
     const {item, items} = res.data
     if(item) {
+      config.afterAdd(kind, item, params)
       createLocal(kind, item)
       return {ok: true, item}
     } else if (items) {
