@@ -91,7 +91,7 @@ export default function reduce(state = initialState, action) {
     case 'UPDATE_RECORD':
       const itemz = [...(state[action.kind] || [])];
       const item = {
-        ...(itemz.find(i => i.id === action.item.id) || {}),
+        ...(itemz.find(i => i.id === Number(action.item.id)) || {}),
         ...action.item,
       };
       item.indexed = false;
@@ -104,7 +104,7 @@ export default function reduce(state = initialState, action) {
       };
 
     case 'DELETE_RECORD':
-      let ids = _.isArray(action.id) ? action.id : [action.id];
+      let ids = (_.isArray(action.id) ? action.id : [action.id]).map(i => Number(i))
       if(!state[action.kind]) return state;
       const delItems = [...state[action.kind]].filter(i => !ids.includes(i.id));
       return {

@@ -109,13 +109,13 @@ export async function destroy(kind, id, extraParams = {}) {
 
 // {user_ids: [3,4,5]} => {user_ids: {added: [], removed: []} }
 
-const getAssocDiff = (newIds = [], oldIds = []) => {
+export const getAssocDiff = (newIds = [], oldIds = []) => {
   const removed = oldIds.filter(id => !newIds.includes(id))
   const added = newIds.filter(id => !oldIds.includes(id))
   return {added, removed}
 }
 
-const makeAssocParams = (newAssocs, oldAssocs) => {
+export const makeAssocParams = (newAssocs, oldAssocs) => {
   const obj = {}
   const updateKeys = Object.keys(newAssocs)
   updateKeys.forEach(key => {
@@ -130,6 +130,14 @@ export async function addRemoveAssoc(kind, newAssocs, oldAssocs, id) {
   const res = await backend.put(`${kind}/${id}/add_remove_assoc`, obj)
   return handleRes(res, kind, params)
 }
+
+
+export async function addRemoveAssocMulti(kind, params) {
+  const obj = getParams(kind, params)
+  const res = await backend.put(`${kind}/add_remove_assoc_multi`, obj)
+  return handleRes(res, kind, params)
+}
+
 
 
 export async function updateAssoc(kind, params = {}, {extraParams = {}, add = true } = {}) {
@@ -147,7 +155,13 @@ export async function updateAssoc(kind, params = {}, {extraParams = {}, add = tr
 
 const handleRes = (res, kind, params) => {
   if(res.ok && res.data) {
-    const {item} = res.data
+    const {item, items} = res.data
+    
+    if(items && items.length > 0) {
+      createMultiLocal(kind, items)
+      return {ok: true, items}
+    }
+
     config.afterAdd(kind, item, params)
     createLocal(kind, item)
     return {ok: true, item}
