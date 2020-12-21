@@ -47,7 +47,7 @@ export async function index(kind, {ignoreStamp, inverted, localKind, refresh, lo
 
 export async function updateMulti(kind, params, {localKind, extraParams, saveLocal = true} = {}) {
   const res = await backend.post(`${kind}/multi_update`, {items: params, ...extraParams})
-  if(res.ok && res.items) {
+  if(res.ok && res.data && res.data.items) {
     const {items} = res.data
     saveLocal && createMultiLocal(kind, items)
     return {ok: true, items}

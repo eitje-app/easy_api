@@ -37,10 +37,9 @@ export const filterRecord = (entities = [], query) => {
   return entities.filter(i => {
     
     if (_.isArray(query)) {
-      query = query.map(q => Number(q))
       return query.includes(i.id)
     } else {
-      return Object.keys(query).every(k => i[k] === query[k] )
+      return Object.keys(query).every(k => _.isEqual(i[k], query[k]) )
     }
 
   } )
