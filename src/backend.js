@@ -46,7 +46,7 @@ async function setVersion(req) {
 
 
 const authMonitor = res => {
-  if( (res.status === 401 || res.status === 400) && !res.config.url.match(/auth/) ) {
+  if( (res.status === 401) && !res.config.url.match(/auth/) ) {
     config.logout()
   }
 }
@@ -89,8 +89,8 @@ function handleErrors(res) {
   if(errs && !errs?.exception) {
     setErrors(errs)
   } else {
-    if(res.status < 402) return;
-      config.alert(config.t("oops"), config.t("unexpectedIssue"))
+    if(res.status == 401) return;
+    config.alert(config.t("oops"), config.t("unexpectedIssue"))
   }
   
 }
