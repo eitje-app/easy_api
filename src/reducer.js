@@ -10,7 +10,7 @@ const initialState = {
 
 const sortFunc = (items, kind) => {
   if (config.sortFuncs && config.sortFuncs[kind]) {
-    return sortFuncs[kind](items);
+    return config.sortFuncs[kind](items);
   }
   return items;
 };
