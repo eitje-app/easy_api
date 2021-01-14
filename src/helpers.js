@@ -19,7 +19,7 @@ export const getStamp = (kind, localKind, extraParams, inverted) => {
   const field = config.stampFields[kind] || 'updated_at'
   let items = state.records[localKind]
   if(!items || items.length === 0) return;
-  items = filterRelevant(kind, items.filter(i => i.indexed), extraParams, state.auth.user.id)
+  items = filterRelevant(kind, items.filter(i => i.indexed), extraParams)
   const item = utils[func](items, field)
   return item ? item[field] : null
 }
