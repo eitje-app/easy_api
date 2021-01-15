@@ -32,8 +32,7 @@ export const findRecord = (entities = [], query) => {
 }
 
 export const filterRecord = (entities = [], query) => {
-  if(!query) return entities
-
+  if(!query) return []
   return entities.filter(i => {
     
     if (_.isArray(query)) {
