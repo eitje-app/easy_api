@@ -38,8 +38,17 @@ export const filterRecord = (entities = [], query) => {
     if (_.isArray(query)) {
       return query.includes(i.id)
     } else {
-      return Object.keys(query).every(k => _.isEqual(i[k], query[k]) )
+      return Object.keys(query).every(k => {
+        const objVal = i[k]
+        const queryVal = query[k]
+        if( numberOrString(objVal) && numberOrString(queryVal) ) {
+          return queryVal == objVal 
+        }
+        return _.isEqual(objVal, queryVal)
+      })
     }
 
   } )
 }
+
+const numberOrString = val => _.isNumber(val) || _.isString(val)

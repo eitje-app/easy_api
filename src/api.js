@@ -8,29 +8,24 @@ import {getStamp, getDelStamp, afterIndex} from './helpers'
 const {store, indexUrls, createUrls, updateUrls, deleteUrls,
        afterAdd} = config
 
-
 const handleErrors = data => {
   return null;
 }
 
-
 const funcOrValue = (val, arg) => _.isFunction(val) ? val(arg) : val
-
 
 export async function index(kind, {ignoreStamp, inverted, localKind, refresh, localForce, ignoreDelStamp, userFilter, filters, params = {} } = {}) {
   const url = config.indexUrls[kind] ? funcOrValue(config.indexUrls[kind]) : kind
-
 
   const camelKind = utils.snakeToCamel(kind)
   const createKind = localKind || camelKind
   const lastUpdatedStamp = (ignoreStamp || refresh) ? null : getStamp(camelKind, createKind, params, inverted)
   const deletedStamp = (ignoreDelStamp || refresh) ? null : getDelStamp(camelKind)
 
-
   const res = await backend.get(url, {new_web: true, ...params, lastUpdatedStamp, deletedStamp, direction: inverted && 'older'})
- 
-  if(res.ok && res.data && res.data.items) {
-    const {items, force, deleted_stamp} = res.data
+  
+  if(res.ok) {
+    const {items = [], force, deleted_stamp} = res.data
     let mappedItems = items;
     const hasForce = force || localForce || refresh
     if(items.length > 0 || hasForce) {
@@ -70,18 +65,18 @@ export async function show(kind, id, {extraParams = {}, localKind} = {} ) {
   }
 }
 
-export async function add(kind, params, {localKind, extraParams = {}, local = true} = {}) {
+export async function add(kind, params, {localKind, url = "", extraParams = {}, local = true} = {}) {
   
   const isCreate = !params["id"]
   const meth = isCreate ? backend.post : backend.put
-  const standardUrl = isCreate ? kind : `${kind}/${params.id}`
+  const standardUrl = isCreate ? `kind${url}` : `${kind}/${params.id}${url}`
   const obj = getParams(kind, params)
 
   const urls = isCreate ? config.createUrls : config.updateUrls
-  const url = urls[kind] ? funcOrValue(urls[kind], params["id"]) : standardUrl
+  const _url = urls[kind] ? funcOrValue(urls[kind], params["id"]) : standardUrl
   const finalParams = {...obj, ...extraParams}
   
-  const res = await meth(url, finalParams)
+  const res = await meth(_url, finalParams)
   if(!local) return res;
   if(res.ok && res.data && res.data.item) {
     const {item} = res.data
@@ -176,20 +171,35 @@ export async function addAssoc(kind, params = {}, rest = {} ) {
   return updateAssoc(kind, params, {...rest, add: true})
 }
 
-export async function arbitrary(kind, url, {method = 'POST', params}) {
+export async function arbitrary(kind, url, config = {}) {
+  let method = 'POST'
+  let params = config;
+  if(config.params) {
+    params = config.params;
+    method = config.method || method
+  }
+
   const res = await backend.any({method, url, data: params})
-  // const res = await backend.post(url, params)
   if(res.ok) {
     const {item, items} = res.data
+
     if(item) {
       config.afterAdd(kind, item, params)
       createLocal(kind, item)
       return {ok: true, item}
-    } else if (items) {
+    } else if (items && _.isArray(items)) {
       createMultiLocal(kind, items)
       return {ok: true, items}
+    } else if (items && _.isObject(items)) {
+      Object.keys(items).forEach(_kind => {
+        const convertedKind = utils.snakeToCamel(_kind)
+        createMultiLocal(convertedKind, items[_kind])
+      })
+      return {ok: true, items}
     }
+  
   }
+  return res;
 }
 
 
@@ -237,6 +247,7 @@ const getParams = (kind, params) => {
 }
 
 export async function createMultiLocal(kind, items, {localKind} = {}) {
+  if(!_.isArray(items)) items = [items].filter(Boolean);
   if(items.length === 0) return;
   const actKind = localKind || kind
   config.store.dispatch({type: 'LOCAL_INDEX_RECORDS', items, kind: utils.snakeToCamel(actKind)})
@@ -259,15 +270,10 @@ export async function updatePartial(kind, id, params) {
   item && createLocal(kind, {...item, ...params})
 }
 
-
-
 export async function destroyLocal(kind, id, {localKind} = {}) {
   const actKind = localKind || kind
   config.store.dispatch({type: 'DELETE_RECORD', id, kind: utils.snakeToCamel(actKind)})
 }
-
-
-
 
 export async function removeRelaton(kind, id, relName, value) {
   const state = config.store.getState()
