@@ -4,6 +4,7 @@ import {config} from './config'
 import _ from 'lodash'
 import pluralize from 'pluralize'
 import {getStamp, getDelStamp, afterIndex} from './helpers'
+import {upload} from './files'
 
 const {store, indexUrls, createUrls, updateUrls, deleteUrls,
        afterAdd} = config
@@ -13,6 +14,36 @@ const handleErrors = data => {
 }
 
 const funcOrValue = (val, arg) => _.isFunction(val) ? val(arg) : val
+
+const handleRes = (res, kind, params = {}) => {
+  if(res.ok && res.data) {
+    const {item, items, destroyed_ids} = res.data
+     
+     if(destroyed_ids) {
+       destroyLocal(kind, destroyed_ids)
+     }
+
+    if(items && _.isArray(items)) {
+      createMultiLocal(kind, items)
+      return {ok: true, items}
+    }
+
+    else if (items && _.isObject(items)) {
+        Object.keys(items).forEach(_kind => {
+          const convertedKind = utils.snakeToCamel(_kind)
+          createMultiLocal(convertedKind, items[_kind])
+      })
+      return {ok: true, items}
+    }
+
+    config.afterAdd(kind, item, params)
+    createLocal(kind, item)
+    return {ok: true, item}
+  }
+  return res;
+}
+
+
 
 export async function index(kind, {ignoreStamp, inverted, localKind, refresh, localForce, ignoreDelStamp, userFilter, filters, params = {} } = {}) {
   const url = config.indexUrls[kind] ? funcOrValue(config.indexUrls[kind]) : kind
@@ -65,11 +96,12 @@ export async function show(kind, id, {extraParams = {}, localKind} = {} ) {
   }
 }
 
+
 export async function add(kind, params, {localKind, url = "", extraParams = {}, local = true} = {}) {
   
   const isCreate = !params["id"]
   const meth = isCreate ? backend.post : backend.put
-  const standardUrl = isCreate ? `kind${url}` : `${kind}/${params.id}${url}`
+  const standardUrl = isCreate ? `${kind}/${url}` : `${kind}/${params.id}${url}`
   const obj = getParams(kind, params)
 
   const urls = isCreate ? config.createUrls : config.updateUrls
@@ -92,6 +124,11 @@ export async function add(kind, params, {localKind, url = "", extraParams = {}, 
 export const create = add;
 export const update = add;
 
+export async function destroyMutation(kind, id) {
+  const res = await backend.delete(`${kind}/${id}/mutation`) 
+  return handleRes(res, kind)
+}
+
 export async function destroy(kind, id, extraParams = {}) {
   const url = config.deleteUrls[kind] ? funcOrValue(config.deleteUrls[kind], id) : `${kind}/${id}`
   const res = await backend.delete(url)
@@ -101,8 +138,6 @@ export async function destroy(kind, id, extraParams = {}) {
   }
   return res;
 }
-
-// {user_ids: [3,4,5]} => {user_ids: {added: [], removed: []} }
 
 export const getAssocDiff = (newIds = [], oldIds = []) => {
   const removed = oldIds.filter(id => !newIds.includes(id))
@@ -140,28 +175,10 @@ export async function updateAssoc(kind, params = {}, {extraParams = {}, add = tr
   const endPoint = add ? 'assoc' : 'remove_assoc'
   const url = `${kind}/${params.id}/${endPoint}`
   const res = await backend.put(url, obj)
-  if(res.ok) {
-    const {item} = res.data
-    config.afterAdd(kind, item, params)
-    createLocal(kind, item)
-    return {ok: true, item}
-  }
+  return handleRes(res, kind, params)
 }
 
-const handleRes = (res, kind, params) => {
-  if(res.ok && res.data) {
-    const {item, items} = res.data
-    
-    if(items && items.length > 0) {
-      createMultiLocal(kind, items)
-      return {ok: true, items}
-    }
 
-    config.afterAdd(kind, item, params)
-    createLocal(kind, item)
-    return {ok: true, item}
-  }
-}
 
 export async function removeAssoc(kind, params, rest = {}) {
   return updateAssoc(kind, params, {...rest, add: false})
@@ -171,6 +188,15 @@ export async function addAssoc(kind, params = {}, rest = {} ) {
   return updateAssoc(kind, params, {...rest, add: true})
 }
 
+export async function attach(kind, id, data) {
+  const url = `${kind}/${id}/attachment`
+
+  const res = await upload(data, {url})
+  return handleRes(res, kind)
+}
+
+
+
 export async function arbitrary(kind, url, config = {}) {
   let method = 'POST'
   let params = config;
@@ -179,27 +205,10 @@ export async function arbitrary(kind, url, config = {}) {
     method = config.method || method
   }
 
-  const res = await backend.any({method, url, data: params})
-  if(res.ok) {
-    const {item, items} = res.data
+  const _url = url.match(/\//) ? url : `${kind}/${url}`
 
-    if(item) {
-      config.afterAdd(kind, item, params)
-      createLocal(kind, item)
-      return {ok: true, item}
-    } else if (items && _.isArray(items)) {
-      createMultiLocal(kind, items)
-      return {ok: true, items}
-    } else if (items && _.isObject(items)) {
-      Object.keys(items).forEach(_kind => {
-        const convertedKind = utils.snakeToCamel(_kind)
-        createMultiLocal(convertedKind, items[_kind])
-      })
-      return {ok: true, items}
-    }
-  
-  }
-  return res;
+  const res = await backend.any({method, url: _url, data: params})
+  return handleRes(res, kind, params)
 }
 
 
@@ -237,8 +246,6 @@ export async function addMulti(kind, params, {extraParams = {}, showSucc = true}
   }
   return false;
 }
-
-
 
 
 const getParams = (kind, params) => {
