@@ -124,7 +124,10 @@ export async function add(kind, params, {localKind, url = "", extraParams = {}, 
 export const create = add;
 export const update = add;
 
+const sanitizeKind = kind => pluralize( utils.camelToSnake(kind) )
+
 export async function destroyMutation(kind, id) {
+  kind = sanitizeKind(kind)
   const res = await backend.delete(`${kind}/${id}/mutation`) 
   return handleRes(res, kind)
 }
