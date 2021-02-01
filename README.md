@@ -76,6 +76,8 @@ Examples:
  - Dispatching start_load & end_load to the store for every non-get request so you can show a loading indicator
  - Handles & displays errors
  
+ __NOTE:__ If you want to prevent the library from dispatching loading actions or prevent the lib from showing the success message, add `doNotLoad: true` to either the data or headers of your request. 
+ 
  
  ## selectors:
  
