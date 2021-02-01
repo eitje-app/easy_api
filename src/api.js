@@ -36,6 +36,7 @@ const handleRes = (res, kind, params = {}) => {
       return {ok: true, items}
     }
 
+    if(!kind) return {ok: true}
     config.afterAdd(kind, item, params)
     createLocal(kind, item)
     return {ok: true, item}
@@ -198,17 +199,40 @@ export async function attach(kind, id, data) {
   return handleRes(res, kind)
 }
 
+export async function request(url, config = {}) {
+  return arbitrary(null, url, config)
+}
 
+export async function resourceReq(kind, url, config = {}) {
+  let {params, method} = makeArbDefault(config)
+  const backendKind = sanitizeKind(kind)
+  const isCreate = !params["id"]
 
-export async function arbitrary(kind, url, config = {}) {
+  const fullUrl = isCreate ? `${backendKind}/${url}` : `${backendKind}/${params["id"]}/${url}`
+  const resourceParams = getParams(kind, params)
+  const meth = isCreate ? backend.post : backend.put
+
+  
+  const res = await meth(fullUrl, resourceParams)
+  return handleRes(res, kind, params)
+}
+
+const makeArbDefault = config => {
   let method = 'POST'
   let params = config;
+  
   if(config.params) {
     params = config.params;
     method = config.method || method
   }
 
-  const _url = url.match(/\//) ? url : `${kind}/${url}`
+  return {method, params}
+}
+
+export async function arbitrary(kind, url, config = {}) {
+  const {params, method} = makeArbDefault(config)
+
+  const _url = (!kind || url.match(/\//)) ? url : `${kind}/${url}`
 
   const res = await backend.any({method, url: _url, data: params})
   return handleRes(res, kind, params)

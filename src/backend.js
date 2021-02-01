@@ -102,7 +102,8 @@ function handleErrors(res) {
 
 
 function reportSuccess(req) {
-  if(req.config.method != 'get' && req.status <= 300 && !req.headers['doNotLoad']) {
+  const data = JSON.parse(req.config.data)
+  if(req.config.method != 'get' && req.status <= 300 && !req.config.headers['doNotLoad'] && !data?.doNotLoad ) {
     config.success();
   }
 }
