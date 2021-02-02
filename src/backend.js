@@ -78,6 +78,15 @@ function setErrors(errors) {
 }
 
 
+function reportValidationErrs(errors) {
+  const {t, alert} = config
+  debugger
+  if(!_.isObject(errors)) return;
+  const newErrors = Object.values(errors).map(err => err[0] ) 
+  newErrors.map(e => alert(t("oops"), e ))
+
+}
+
 function handleErrors(res) {
   const {t, alert} = config
   if(res.status < 400) return;
@@ -85,12 +94,15 @@ function handleErrors(res) {
     alert(t("oops"), t("unauthorized"))
     return
   }
+
+  const errs = res.data?.errors || res.errors || res.data
+
   if(res.status === 422) {
-    alert(t("oops"), t("recordInvalid") )
+    config.formErrors ? alert(t("oops"), t("recordInvalid") ) : reportValidationErrs(errs)
     return;
   }
 
-  const errs = res.data?.errors || res.errors || res.data
+  
   if(errs && !errs?.exception) {
     setErrors(errs)
   } else {

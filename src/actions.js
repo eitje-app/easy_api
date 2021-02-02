@@ -33,22 +33,27 @@ export const findRecord = (entities = [], query) => {
 
 export const filterRecord = (entities = [], query) => {
   if(!query) return []
-  return entities.filter(i => {
-    
-    if (_.isArray(query)) {
-      return query.includes(i.id)
-    } else {
-      return Object.keys(query).every(k => {
-        const objVal = i[k]
-        const queryVal = query[k]
-        if( numberOrString(objVal) && numberOrString(queryVal) ) {
-          return queryVal == objVal 
-        }
-        return _.isEqual(objVal, queryVal)
-      })
-    }
-
-  } )
+  return entities.filter(i => matchesQuery(i, query))
 }
 
+export const inverseFilterRecord = (entities = [], query) => {
+  if(!query) return []
+  return entities.filter(i => !matchesQuery(i, query))
+}
+
+const matchesQuery = (i, query) => {
+  if (_.isArray(query)) {
+    return query.includes(i.id)
+  } else {
+    return Object.keys(query).every(k => {
+      const objVal = i[k]
+      const queryVal = query[k]
+      if( numberOrString(objVal) && numberOrString(queryVal) ) {
+        return queryVal == objVal 
+      }
+      return _.isEqual(objVal, queryVal)
+    })
+  }
+}
+ 
 const numberOrString = val => _.isNumber(val) || _.isString(val)

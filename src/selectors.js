@@ -3,7 +3,7 @@ import createCachedSelector from 're-reselect'
 import _ from 'lodash'
 import moment from 'moment'
 import utils from '@eitje/utils'
-import {findRecord, filterRecord, includesRecord, filterByDate} from './actions'
+import {findRecord, inverseFilterRecord, filterRecord, includesRecord, filterByDate} from './actions'
 import {config} from './config'
 
 const authUserSelector = state => state.auth.user
@@ -62,6 +62,15 @@ export const where = createCachedSelector(
   (state, key) => key,
   (state, key, query) => query,
   (records, key, query) => filterRecord(records, query) || []
+)(
+  (state, key, query) => `${key}-${JSON.stringify(query)}`
+)
+
+export const whereNot = createCachedSelector(
+  all,
+  (state, key) => key,
+  (state, key, query) => query,
+  (records, key, query) => inverseFilterRecord(records, query) || []
 )(
   (state, key, query) => `${key}-${JSON.stringify(query)}`
 )
