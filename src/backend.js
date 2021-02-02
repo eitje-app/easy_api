@@ -80,7 +80,6 @@ function setErrors(errors) {
 
 function reportValidationErrs(errors) {
   const {t, alert} = config
-  debugger
   if(!_.isObject(errors)) return;
   const newErrors = Object.values(errors).map(err => err[0] ) 
   newErrors.map(e => alert(t("oops"), e ))
