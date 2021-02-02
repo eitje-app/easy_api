@@ -113,7 +113,7 @@ function handleErrors(res) {
 
 
 function reportSuccess(req) {
-  const data = JSON.parse(req.config.data)
+  const data = req?.config?.data && JSON.parse(req.config.data)
   if(req.config.method != 'get' && req.status <= 300 && !req.config.headers['doNotLoad'] && !data?.doNotLoad ) {
     config.success();
   }
