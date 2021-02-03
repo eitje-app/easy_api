@@ -15,6 +15,22 @@ const handleErrors = data => {
 
 const funcOrValue = (val, arg) => _.isFunction(val) ? val(arg) : val
 
+export async function add(kind, params, {localKind, url = "", extraParams = {}, local = true} = {}) {
+  
+  const isCreate = !params["id"]
+  const meth = isCreate ? backend.post : backend.put
+  const standardUrl = isCreate ? `${kind}/${url}` : `${kind}/${params.id}${url}`
+  const obj = getParams(kind, params)
+
+  const urls = isCreate ? config.createUrls : config.updateUrls
+  const _url = urls[kind] ? funcOrValue(urls[kind], params["id"]) : standardUrl
+  const finalParams = {...obj, ...extraParams}
+  
+  const res = await meth(_url, finalParams)
+  if(!local) return res;
+  return handleRes(res, localKind || kind, params)
+}
+
 const handleRes = (res, kind, params = {}) => {
   if(res.ok && res.data) {
     const {item, items, destroyed_ids} = res.data
@@ -98,29 +114,7 @@ export async function show(kind, id, {extraParams = {}, localKind} = {} ) {
 }
 
 
-export async function add(kind, params, {localKind, url = "", extraParams = {}, local = true} = {}) {
-  
-  const isCreate = !params["id"]
-  const meth = isCreate ? backend.post : backend.put
-  const standardUrl = isCreate ? `${kind}/${url}` : `${kind}/${params.id}${url}`
-  const obj = getParams(kind, params)
 
-  const urls = isCreate ? config.createUrls : config.updateUrls
-  const _url = urls[kind] ? funcOrValue(urls[kind], params["id"]) : standardUrl
-  const finalParams = {...obj, ...extraParams}
-  
-  const res = await meth(_url, finalParams)
-  if(!local) return res;
-  if(res.ok && res.data && res.data.item) {
-    const {item} = res.data
-    const createKind = localKind || kind
-    config.afterAdd(kind, item, params)
-    createLocal(createKind, item)
-    return {ok: true, item}
-  } else {
-    return {ok: false, errors: res.errors || res.data}
-  }
-}
 
 export const create = add;
 export const update = add;
