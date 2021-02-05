@@ -72,7 +72,7 @@ function setErrors(errors) {
     err = errs[0]
   } 
   else {
-    err = t("unexpectedIssue")
+    err = _.isString(errors) ? errors : t("unexpectedIssue")
   }
   config.alert(config.t("oops"), err)
 }
@@ -101,7 +101,6 @@ function handleErrors(res) {
     return;
   }
 
-  
   if(errs && !errs?.exception) {
     setErrors(errs)
   } else {
