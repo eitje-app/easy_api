@@ -214,9 +214,9 @@ export async function resourceReq(kind, url, config = {}) {
 const makeArbDefault = config => {
   let method = 'POST'
   let params = config;
-  
-  if(config.params) {
-    params = config.params;
+
+  if(config.params || config.method) { // this means the argument is a settings object instead of just params
+    params = config.params
     method = config.method || method
   }
 
