@@ -88,6 +88,10 @@ function reportValidationErrs(errors) {
 
 function handleErrors(res) {
   const {t, alert} = config
+  if(res.problem === 'NETWORK_ERROR') {
+    alert(t("oops"), t("networkUnreachable"))
+    return;
+  }
   if(res.status < 400) return;
   if(res.status === 403) {
     alert(t("oops"), t("unauthorized"))
@@ -113,7 +117,7 @@ function handleErrors(res) {
 
 function reportSuccess(req) {
   const data = req?.config?.data && JSON.parse(req.config.data)
-  if(req.config.method != 'get' && req.status <= 300 && !req.config.headers['doNotLoad'] && !data?.doNotLoad ) {
+  if(req.config.method != 'get' && req.ok && req.status <= 300 && !req.config.headers['doNotLoad'] && !data?.doNotLoad ) {
     config.success();
   }
 }
