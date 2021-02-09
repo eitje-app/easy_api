@@ -39,6 +39,15 @@ const handleRes = (res, kind, params = {}) => {
        destroyLocal(kind, destroyed_ids)
      }
 
+    const isMultiRes = _.isArray(items) && items.length > 1
+
+    if(item && !isMultiRes) {
+      if(!kind) return {ok: true}
+      config.afterAdd(kind, item, params)
+      createLocal(kind, item)
+      return {ok: true, item}
+    }
+
     if(items && _.isArray(items)) {
       createMultiLocal(kind, items)
       return {ok: true, items}
@@ -52,10 +61,8 @@ const handleRes = (res, kind, params = {}) => {
       return {ok: true, items}
     }
 
-    if(!kind) return {ok: true}
-    config.afterAdd(kind, item, params)
-    createLocal(kind, item)
-    return {ok: true, item}
+    
+    
   }
   return res;
 }
