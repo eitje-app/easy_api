@@ -18,6 +18,6 @@ const handleProgress = ({loaded = 0, total = 0}) => {
   const fileData = makeFileData(file)
   return backend.post(url, makeFileData(file), {
                                  onUploadProgress: (info) => setProgress(handleProgress(info)),  
-                                 headers: {'doNotLoad': true, 'Accept': 'application/json', 'Content-Type': 'multipart/form-data'}} )
+                                 headers: {'Accept': 'application/json', 'Content-Type': 'multipart/form-data'}} )
   
 }
