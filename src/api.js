@@ -41,6 +41,14 @@ const handleRes = (res, kind, params = {}) => {
 
     const isMultiRes = _.isArray(items) && items.length > 1
 
+    if (items && _.isObject(items) && !_.isArray(items)) {
+      Object.keys(items).forEach(_kind => {
+        const convertedKind = utils.snakeToCamel(_kind)
+        createMultiLocal(convertedKind, items[_kind])
+      })
+      return {ok: true, items}
+    }
+
     if(item && !isMultiRes) {
       if(!kind) return {ok: true}
       config.afterAdd(kind, item, params)
@@ -53,13 +61,7 @@ const handleRes = (res, kind, params = {}) => {
       return {ok: true, items}
     }
 
-    else if (items && _.isObject(items)) {
-        Object.keys(items).forEach(_kind => {
-          const convertedKind = utils.snakeToCamel(_kind)
-          createMultiLocal(convertedKind, items[_kind])
-      })
-      return {ok: true, items}
-    }
+    
 
     
     
@@ -198,6 +200,14 @@ export async function attach(kind, id, data) {
 
   const res = await upload(data, {url})
   return handleRes(res, kind)
+}
+
+export async function removeAttachment(kind, id, idx) {
+  const sanitizedKind = sanitizeKind(kind)
+  const params = getParams(sanitizedKind, {index: idx})
+  const url = `${sanitizedKind}/${id}/remove_attachment`
+  const res = await backend.post(url, params)
+  return handleRes(res, sanitizedKind)
 }
 
 export async function request(url, config = {}) {
