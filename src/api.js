@@ -34,10 +34,9 @@ export async function add(kind, params, {localKind, url = "", extraParams = {}, 
 const handleRes = (res, kind, params = {}) => {
   if(res.ok && res.data) {
     const {item, items, destroyed_ids} = res.data
-     
-     if(destroyed_ids) {
-       destroyLocal(kind, destroyed_ids)
-     }
+    
+    handleDestroyed(kind, destroyed_ids)
+    
 
     const isMultiRes = _.isArray(items) && items.length > 1
 
@@ -69,6 +68,25 @@ const handleRes = (res, kind, params = {}) => {
   return res;
 }
 
+const handleDestroyed = (kind, ids) => {
+  if(!utils.exists(ids)) return;
+  
+  if(_.isArray(ids)) {
+    destroyLocal(kind, ids)
+    return;
+  }
+
+  if(_.isPlainObject(ids)) {
+    handleLayered(ids, (kind, items) => destroyLocal(kind, items) )
+  }
+}
+
+const handleLayered = (items, callback) => {
+  Object.keys(items).forEach(_kind => {
+    const convertedKind = utils.snakeToCamel(_kind)
+    callback(convertedKind, items[_kind] )
+  })
+}
 
 
 export async function index(kind, {ignoreStamp, inverted, localKind, refresh, localForce, ignoreDelStamp, userFilter, filters, params = {} } = {}) {
@@ -139,9 +157,11 @@ export async function destroyMutation(kind, id) {
 export async function destroy(kind, id, extraParams = {}) {
   const url = config.deleteUrls[kind] ? funcOrValue(config.deleteUrls[kind], id) : `${kind}/${id}`
   const res = await backend.delete(url)
-  if(res.ok) {
+  if(res.ok && !res?.data?.destroyed_ids) {
     destroyLocal(kind, id, extraParams)
     return {ok: true}
+  } else {
+    return handleRes(res)
   }
   return res;
 }
