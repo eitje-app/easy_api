@@ -10,7 +10,7 @@ export const includesRecord = (entities, query) => {
 export const filterByDate  = (entities, {start, end}, {dateField = 'date'} = {} ) => {
 
   return entities.filter(e => {
-    if(start && end) return e[dateField] >= start && e.date <= end;
+    if(start && end) return e[dateField] >= start && e[dateField] <= end;
     if(start) return e[dateField] >= start;
     return e[dateField] <= end;
 
