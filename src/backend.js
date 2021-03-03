@@ -51,9 +51,15 @@ const authMonitor = res => {
   }
 }
 
+const getData = req => {
+  const {params = {}, data = {}} = req
+  return {...params, ...data}
+}
+
 const startLoad = req => {
+  const data = getData(req)
   const isMultiPart = req.headers['Content-Type'] === 'multipart/form-data'
-  if(req.method !== 'get' && !isMultiPart && !req.headers['doNotLoad']  && (!req.data || !req.data.doNotLoad ) ) {
+  if(req.method !== 'get' && !isMultiPart && !req.headers['doNotLoad']  && (!data || !data.doNotLoad ) ) {
     config.store && config.store.dispatch({type: 'START_LOADING'})
   }
 }
@@ -85,6 +91,9 @@ function reportValidationErrs(errors) {
   newErrors.map(e => alert(t("oops"), e ))
 
 }
+
+
+
 
 function handleErrors(res) {
   const {t, alert} = config
@@ -118,9 +127,9 @@ function handleErrors(res) {
 function reportSuccess(req) {
   let data;
   try {
-    data = req.config.data && JSON.parse(req.config.data)
+    data = req.config.data ? JSON.parse(req.config.data) : req.config.params
   } catch(e) {
-
+    data = req.config.params
   }
 
   if(req.config.method != 'get' && req.ok && req.status <= 300 && !req.config.headers['doNotLoad'] && !data?.doNotLoad ) {
