@@ -286,7 +286,7 @@ export async function toggle(kind, params, {extraParams = {}} = {}) {
 export async function getByIds(kind, ids, extraParams = {}) {
   const url = `${kind}/by_ids`
   const res = await backend.get(url, {ids})
-  if (res.ok) {
+  if (res.ok && res.data) {
     const {items} = res.data
     createMultiLocal(kind, items, extraParams)
   }
