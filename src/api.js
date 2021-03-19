@@ -3,7 +3,7 @@ import utils from '@eitje/utils'
 import {config} from './config'
 import _ from 'lodash'
 import pluralize from 'pluralize'
-import {getStamp, getDelStamp, afterIndex} from './helpers'
+import {getStamp, getDelStamp, getStamps, afterIndex} from './helpers'
 import {upload} from './files'
 
 const {store, indexUrls, createUrls, updateUrls, deleteUrls,
@@ -94,10 +94,11 @@ export async function index(kind, {ignoreStamp, inverted, localKind, refresh, lo
 
   const camelKind = utils.snakeToCamel(kind)
   const createKind = localKind || camelKind
-  const lastUpdatedStamp = (ignoreStamp || refresh) ? null : getStamp(camelKind, createKind, params, inverted)
+  const stamps = (ignoreStamp || refresh) ? {} : getStamps(camelKind, createKind, params, inverted)
+  // const lastUpdatedStamp = (ignoreStamp || refresh) ? null : getStamp(camelKind, createKind, params, inverted)
   const deletedStamp = (ignoreDelStamp || refresh) ? null : getDelStamp(camelKind)
 
-  const res = await backend.get(url, {new_web: true, ...params, lastUpdatedStamp, deletedStamp, direction: inverted && 'older'})
+  const res = await backend.get(url, {new_web: true, ...params, ...stamps, deletedStamp, direction: inverted && 'older'})
   
   if(res.ok) {
     const {items = [], force, deleted_stamp} = res.data
