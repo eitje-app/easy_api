@@ -72,7 +72,7 @@ const endLoad = req => {
 
 function setErrors(errors) {
   const hasError = _.isObject(errors) && Object.keys(errors).length > 0
-  let err;
+let err;
   if(hasError) {
     const errs = _.flatten(Object.values(errors))
     err = errs[0]
@@ -132,7 +132,9 @@ function reportSuccess(req) {
     data = req.config.params
   }
 
-  if(req.config.method != 'get' && req.ok && req.status <= 300 && !req.config.headers['doNotLoad'] && !data?.doNotLoad ) {
+  const heads = req.config.headers || {}
+
+  if(req.config.method != 'get' && req.ok && req.status <= 300 && !heads['doNotLoad'] && !data?.doNotLoad  ) {
     config.success();
   }
 }
