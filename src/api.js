@@ -100,7 +100,7 @@ export async function index(kind, {ignoreStamp, inverted, localKind, refresh, lo
 
   const res = await backend.get(url, {new_web: true, ...params, ...stamps, deletedStamp, direction: inverted && 'older'})
   
-  if(res.ok) {
+  if(res.ok && res.data) {
     const {items = [], force, deleted_stamp} = res.data
     let mappedItems = items;
     const hasForce = force || localForce || refresh
