@@ -16,7 +16,7 @@ const handleErrors = data => {
 const funcOrValue = (val, arg) => _.isFunction(val) ? val(arg) : val
 
 export async function add(kind, params, {localKind, url = "", extraParams = {}, local = true} = {}) {
-  
+  kind = sanitizeKind(kind)
   const isCreate = !params["id"]
   const meth = isCreate ? backend.post : backend.put
   const standardUrl = isCreate ? `${kind}/${url}` : `${kind}/${params.id}${url}`
