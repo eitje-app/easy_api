@@ -72,7 +72,7 @@ const endLoad = req => {
 
 function setErrors(errors) {
   const hasError = _.isObject(errors) && Object.keys(errors).length > 0
-let err;
+  let err;
   if(hasError) {
     const errs = _.flatten(Object.values(errors))
     err = errs[0]
@@ -80,7 +80,9 @@ let err;
   else {
     err = _.isString(errors) ? errors : t("unexpectedIssue")
   }
-  config.alert(config.t("oops"), err)
+  if(_.isString(err)) {
+    config.alert(config.t("oops"), err)
+  }
 }
 
 
