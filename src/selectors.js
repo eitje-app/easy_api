@@ -5,6 +5,7 @@ import moment from 'moment'
 import utils from '@eitje/utils'
 import {findRecord, inverseFilterRecord, filterRecord, includesRecord, filterByDate} from './actions'
 import {config} from './config'
+import pluralize from 'pluralize'
 
 const authUserSelector = state => state.auth.user
 const usersSelector = state => state.records.users
@@ -12,7 +13,7 @@ const usersSelector = state => state.records.users
 
 export const all = createCachedSelector(
   state => state.records,
-  (state, key) => key,
+  (state, key) => pluralize(key),
   (ents, key) => config.enrichRecords(ents, key) || ents[key] || []
 )(
   (ents, key) => key
