@@ -201,8 +201,15 @@ export async function addAssoc(kind, params = {}, rest = {} ) {
 
 export async function attach(kind, id, data) {
   const url = `${kind}/${id}/attachment`
-
   const res = await upload(data, {url})
+  return handleRes(res, kind)
+}
+
+export async function updateAsset(kind, id, data) {
+  const url = `${kind}/${id}`
+
+  const res = await upload(data, {method: 'put', paramName: 'info[pdf_content]',  url})
+  // buildParams: prms => getParams(kind, prms),
   return handleRes(res, kind)
 }
 
