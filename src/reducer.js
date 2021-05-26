@@ -124,6 +124,6 @@ export default function reduce(state = initialState, action) {
       };
 
     default:
-      return state;
+      return config.extendReducer(state, action) || state;
   }
 }
