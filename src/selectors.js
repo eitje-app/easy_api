@@ -22,7 +22,7 @@ export const all = createCachedSelector(
 
 export const selfSelector = createSelector(
     authUserSelector,
-    usersSelector,
+    state => all(state, 'users'),
     (user, users = []) => users.find(u => u.id === user.id) || user
   )
 
