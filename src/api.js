@@ -45,19 +45,19 @@ const handleRes = (res, kind, params = {}) => {
         const convertedKind = utils.snakeToCamel(_kind)
         createMultiLocal(convertedKind, items[_kind])
       })
-      return {ok: true, items}
+      return {...res, ok: true, items}
     }
 
     if(item && !isMultiRes) {
       if(!kind) return {ok: true}
       config.afterAdd(kind, item, params)
       createLocal(kind, item)
-      return {ok: true, item}
+      return {...res, ok: true, item}
     }
 
     if(items && _.isArray(items)) {
       createMultiLocal(kind, items)
-      return {ok: true, items}
+      return {...res, ok: true, items}
     }
     
   }
