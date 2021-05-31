@@ -98,7 +98,10 @@ function reportValidationErrs(errors) {
 
 
 function handleErrors(res) {
-  const {t, alert} = config
+  const {t, alert, ignoreErrors} = config
+
+  if(ignoreErrors(res)) return;
+
   if(res.problem === 'NETWORK_ERROR') {
     alert(t("oops"), t("networkUnreachable"))
     return;
