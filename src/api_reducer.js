@@ -11,7 +11,7 @@ export default function reduce(state = initialState, action) {
         loading: true
       }
 
-    case 'END_LOADING':
+    case 'STOP_LOADING':
       return {...state, loading: false}
 
     default:
