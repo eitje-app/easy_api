@@ -4,7 +4,6 @@ import utils from '@eitje/utils'
 import _ from 'lodash'
 
 let api;
-
 const createApi = () => {
     api = create({ 
     baseURL: config.baseURL,
@@ -59,13 +58,16 @@ const getData = req => {
 const startLoad = req => {
   const data = getData(req)
   const isMultiPart = req.headers['Content-Type'] === 'multipart/form-data'
-  if(req.method !== 'get' && !isMultiPart && !req.headers['doNotLoad']  && (!data || !data.doNotLoad ) ) {
+  if( data.doLoad || ( req.method !== 'get' && !isMultiPart && !req.headers['doNotLoad']  && (!data || !data.doNotLoad ) )) {
     config.store && config.store.dispatch({type: 'START_LOADING'})
   }
 }
 
+
+
 const endLoad = req => {
-  if(req.config.method !== 'get' ) {
+  const data = getDataForMonitor(req)
+  if(data.doLoad || req.config.method !== 'get' ) {
    config.store.dispatch({type: 'STOP_LOADING'})
   }
 }
@@ -130,13 +132,7 @@ function handleErrors(res) {
 
 
 function reportSuccess(req) {
-  let data;
-  try {
-    data = req.config.data ? JSON.parse(req.config.data) : req.config.params
-  } catch(e) {
-    data = req.config.params
-  }
-
+  const data = getDataForMonitor(req)
   const heads = req.config.headers || {}
 
   if(req.config.method != 'get' && req.ok && req.status <= 300 && !heads['doNotLoad'] && !data?.doNotLoad  ) {
@@ -144,6 +140,17 @@ function reportSuccess(req) {
   }
 }
 
+
+
+const getDataForMonitor = (req) => {
+  try {
+    data = req.config.data ? JSON.parse(req.config.data) : req.config.params
+  } catch(e) {
+    data = req.config.params
+  }
+
+  return data;
+}
 
 
 
