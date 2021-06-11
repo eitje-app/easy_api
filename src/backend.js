@@ -66,9 +66,8 @@ const startLoad = req => {
 
 
 const endLoad = req => {
-  // const data = getDataForMonitor(req) || {}
-  // data.doLoad || 
-  if(req.config.method !== 'get' ) {
+  const data = getDataForMonitor(req) || {}
+  if(data.doLoad || req.config.method !== 'get' ) {
    config.store.dispatch({type: 'STOP_LOADING'})
   }
 }
