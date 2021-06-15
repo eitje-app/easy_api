@@ -143,6 +143,8 @@ function reportSuccess(req) {
 
 
 const getDataForMonitor = (req) => {
+  let data;
+  
   try {
     data = req.config.data ? JSON.parse(req.config.data) : req.config.params
   } catch(e) {
