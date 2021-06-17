@@ -205,7 +205,7 @@ export async function attach(kind, id, data) {
   return handleRes(res, kind)
 }
 
-export async function updateAsset(kind, id, data, {doLoad} = {}) {
+export async function updateAsset(kind, id, data, {doLoad = true} = {}) {
   const url = `${kind}/${id}`
 
   const res = await upload(data, {method: 'put', paramName: 'info[pdf_content]',  url, doLoad })
