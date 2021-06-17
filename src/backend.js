@@ -58,7 +58,7 @@ const getData = req => {
 const startLoad = req => {
   const data = getData(req)
   const isMultiPart = req.headers['Content-Type'] === 'multipart/form-data'
-  if( data.doLoad || ( req.method !== 'get' && !isMultiPart && !req.headers['doNotLoad']  && (!data || !data.doNotLoad ) )) {
+  if( data.doLoad || req.headers['doLoad'] ||  ( req.method !== 'get' && !isMultiPart && !req.headers['doNotLoad']  && (!data || !data.doNotLoad ) )) {
     config.store && config.store.dispatch({type: 'START_LOADING'})
   }
 }
