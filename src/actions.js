@@ -43,6 +43,7 @@ export const inverseFilterRecord = (entities = [], query) => {
 
 const matchesQuery = (i, query) => {
   if (_.isArray(query)) {
+    query = query.map(q => Number(q))
     return query.includes(i.id)
   } else {
     return Object.keys(query).every(k => {
