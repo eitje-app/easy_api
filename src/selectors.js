@@ -62,7 +62,7 @@ export const where = createCachedSelector(
   all,
   (state, key) => key,
   (state, key, query) => query,
-  (records, key, query) => filterRecord(records, query) || []
+  (records, key, query) => (query ? filterRecord(records, query) : records) || []
 )(
   (state, key, query) => `${key}-${JSON.stringify(query)}`
 )
