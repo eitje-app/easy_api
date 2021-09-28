@@ -111,17 +111,15 @@ export async function index(
     const {items = [], force, deleted_stamp} = res.data
     let mappedItems = items
     const hasForce = force || localForce || refresh
-    if (items.length > 0 || hasForce) {
-      mappedItems = afterIndex(kind, items, {localKind: camelKind})
-      config.store.dispatch({
-        type: 'INDEX_RECORDS',
-        force: hasForce,
-        items: mappedItems,
-        deletedStamp: deleted_stamp,
-        kind: createKind,
-        delKind: camelKind,
-      })
-    }
+    mappedItems = afterIndex(kind, items, {localKind: camelKind})
+    config.store.dispatch({
+      type: 'INDEX_RECORDS',
+      force: hasForce,
+      items: mappedItems,
+      deletedStamp: deleted_stamp,
+      kind: createKind,
+      delKind: camelKind,
+    })
     return {...res, items: mappedItems}
   } else {
   }
