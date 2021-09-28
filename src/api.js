@@ -107,8 +107,10 @@ export async function index(
 
   const res = await backend.get(url, {new_web: true, ...params, ...stamps, deletedStamp, direction: inverted && 'older'})
 
-  if (res.ok && res.data) {
-    const {items = [], force, deleted_stamp} = res.data
+  if (res.ok) {
+    let {data} = res 
+    data = data || {}
+    const {items = [], force, deleted_stamp} = data
     let mappedItems = items
     const hasForce = force || localForce || refresh
     mappedItems = afterIndex(kind, items, {localKind: camelKind})
