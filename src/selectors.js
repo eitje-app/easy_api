@@ -13,7 +13,7 @@ const usersSelector = state => state.records.users
 
 export const all = createCachedSelector(
   state => state.records,
-  (state, key) => pluralize(key),
+  (state, key) => pluralize(key), // In the current setup, we could just accept an array!
   (ents, key) => config.enrichRecords(ents, key) || ents[key] || []
 )(
   (ents, key) => key

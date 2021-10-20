@@ -17,10 +17,13 @@ const sortFunc = (items, kind) => {
 
 
 const mapFetchedKinds = ({combined, old, newItem}) => {
-  const fetchedKinds = [
+  let fetchedKinds = [
     ...(old.fetchedKinds || []),
     ...(newItem.fetchedKinds || []),
   ];
+
+  fetchedKinds = _.uniq(fetchedKinds)
+
   return {...combined, fetchedKinds};
 };
 
