@@ -95,17 +95,20 @@ const handleLayered = (items, callback) => {
 
 export async function index(
   kind,
-  {ignoreStamp, inverted, localKind, refresh, localForce, ignoreDelStamp, userFilter, filters, params = {}} = {},
+  {ignoreStamp, inverted, localKind, refresh, localForce, ignoreDelStamp, userFilter, filters = {}, params = {}} = {},
 ) {
   const url = config.indexUrls[kind] ? funcOrValue(config.indexUrls[kind]) : kind
 
   const camelKind = utils.snakeToCamel(kind)
   const createKind = localKind || camelKind
   const stamps = ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted)
-  // const lastUpdatedStamp = (ignoreStamp || refresh) ? null : getStamp(camelKind, createKind, params, inverted)
   const deletedStamp = ignoreDelStamp || refresh ? null : getDelStamp(camelKind)
+  let condParams = {}
+  if(utils.exists(filters)) {
+    condParams["filters"] = filters
+  }
 
-  const res = await backend.get(url, {new_web: true, ...params, ...stamps, deletedStamp, direction: inverted && 'older'})
+  const res = await backend.get(url, {new_web: true, ...params, ...stamps, ...condParams, deletedStamp, direction: inverted && 'older'})
 
   if (res.ok) {
     let {data} = res 
