@@ -108,15 +108,17 @@ export async function index(
   const camelKind = utils.snakeToCamel(kind)
   const createKind = localKind || camelKind
   const cacheKind = makeCacheKind(createKind, filters)
-  debugger
-  const stamps = ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted, cacheKind)
+
+  const {stamps = {}, currentItems = []} = ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted, cacheKind)
+  const currentIds = currentItems.map(i => i.id)
   const deletedStamp = ignoreDelStamp || refresh ? null : getDelStamp(camelKind)
   let condParams = {}
+  
   if (utils.exists(filters)) {
     condParams['filters'] = filters
   }
 
-  const res = await backend.get(url, {new_web: true, ...params, ...stamps, ...condParams, deletedStamp, direction: inverted && 'older'})
+  const res = await backend.get(url, {new_web: true, ...params, currentIds, ...stamps, ...condParams, deletedStamp, direction: inverted && 'older'})
 
   if (res.ok) {
     let {data} = res

@@ -26,7 +26,7 @@ export const getStamps = (kind, localKind, extraParams, inverted, cacheKind) => 
     obj['lastCreatedStamp'] = findStamp(items, customStampField, inverted)
   }
   
-  return obj;
+  return {stamps: obj, currentItems: items}
   
 }
 
