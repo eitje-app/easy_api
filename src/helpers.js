@@ -3,8 +3,8 @@ import {config} from './config'
 import _ from 'lodash'
 
 
-export const filterRelevant = (kind, items, extraParams = {}) => {
-  items = items.filter(i => i.indexed && i.fetchedKinds && i.fetchedKinds.includes(kind))
+export const filterRelevant = (kind, items, extraParams = {}, cacheKind) => {
+  items = items.filter(i => i.fetchedKinds && i.fetchedKinds.includes(cacheKind))
   return config.filterStampItems ? config.filterStampItems(kind, items, extraParams) : items
 }
 
@@ -13,24 +13,13 @@ export const getDelStamp = kind => {
   return state.records.deletedStamps[kind]
 }
 
-export const getStamp = (kind, localKind, extraParams, inverted) => {
-  const func = inverted ? 'getMin' : 'getMax'
-  const state = config.store.getState()
-  const field = config.stampFields[kind] || 'updated_at'
-  let items = state.records[localKind]
-  if(!items || items.length === 0) return;
-  items = filterRelevant(kind, items.filter(i => i.indexed), extraParams)
-  const item = utils[func](items, field)
-  return item ? item[field] : null
-}
-
-export const getStamps = (kind, localKind, extraParams, inverted) => {
+export const getStamps = (kind, localKind, extraParams, inverted, cacheKind) => {
   const customStampField = config.stampFields[kind]
   let obj = {}
   const state = config.store.getState()
   let items = state.records[localKind]
   if(!items || items.length === 0) return {};
-  items = filterRelevant(kind, items, extraParams)
+  items = filterRelevant(kind, items, extraParams, cacheKind)
   obj["lastUpdatedStamp"] = findStamp(items, 'updated_at', inverted)
   
   if(customStampField) {
@@ -47,10 +36,7 @@ const findStamp = (items, field, inverted = false) => {
   return item ? item[field] : null
 }
 
-// {updatedStamp: .., createdStamp: ..}
-
 export const afterIndex = (kind, items = [], {localKind}) => {
-  const state = config.store.getState();
   if(!items || !_.isArray(items)) return [];
 
   items = items.map(i => ({...i, fetchedKinds: [...(i.fetchedKinds || []), localKind] }))

@@ -3,7 +3,7 @@ import utils from '@eitje/utils'
 import {config} from './config'
 import _ from 'lodash'
 import pluralize from 'pluralize'
-import {getStamp, getDelStamp, getStamps, afterIndex} from './helpers'
+import {getDelStamp, getStamps, afterIndex} from './helpers'
 import {upload} from './files'
 
 const {store, indexUrls, createUrls, updateUrls, deleteUrls, afterAdd} = config
@@ -93,6 +93,12 @@ const handleLayered = (items, callback) => {
   })
 }
 
+const makeCacheKind = (kind, filters) => {
+  if (!utils.exists(filters)) return kind
+  const sortedStringified = JSON.stringify(filters, Object.keys(filters).sort()) // we sort to ensure order of keys doesn't matter
+  return `${kind}-${sortedStringified}`
+}
+
 export async function index(
   kind,
   {ignoreStamp, inverted, localKind, refresh, localForce, ignoreDelStamp, userFilter, filters = {}, params = {}} = {},
@@ -101,22 +107,24 @@ export async function index(
 
   const camelKind = utils.snakeToCamel(kind)
   const createKind = localKind || camelKind
-  const stamps = ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted)
+  const cacheKind = makeCacheKind(createKind, filters)
+  debugger
+  const stamps = ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted, cacheKind)
   const deletedStamp = ignoreDelStamp || refresh ? null : getDelStamp(camelKind)
   let condParams = {}
-  if(utils.exists(filters)) {
-    condParams["filters"] = filters
+  if (utils.exists(filters)) {
+    condParams['filters'] = filters
   }
 
   const res = await backend.get(url, {new_web: true, ...params, ...stamps, ...condParams, deletedStamp, direction: inverted && 'older'})
 
   if (res.ok) {
-    let {data} = res 
+    let {data} = res
     data = data || {}
     const {items = [], force, deleted_stamp} = data
     let mappedItems = items
     const hasForce = force || localForce || refresh
-    mappedItems = afterIndex(kind, items, {localKind: camelKind})
+    mappedItems = afterIndex(kind, items, {localKind: cacheKind})
     config.store.dispatch({
       type: 'INDEX_RECORDS',
       force: hasForce,
