@@ -2,12 +2,14 @@ import {config} from './config'
 import {create} from 'apisauce'
 import utils from '@eitje/utils'
 import _ from 'lodash'
+import Qs from 'qs'
 
 let api
 const createApi = () => {
   api = create({
     baseURL: config.baseURL,
     headers: {'Content-Type': 'application/json', credentials: 'same-origin', 'Access-Control-Allow-Origin': '*'},
+    paramsSerializer: serializeNestedParams,
     ...config.apiConfig,
   })
 
@@ -23,6 +25,8 @@ const createApi = () => {
 
   return api
 }
+
+const serializeNestedParams = (params) => Qs.stringify(params, {arrayFormat: 'repeat'})
 
 async function changeTokenHeader(req) {
   if (req.url !== 'oauth/token' && req.url !== 'auth' && req.url !== 'users/sign_up' && req.url !== 'auth/confirmed') {
