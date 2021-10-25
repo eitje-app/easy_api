@@ -7,3 +7,5 @@ import apiReducer from './api_reducer'
 export {setup, initApi, API, backend, config, reducer, apiReducer}
 Object.assign(module.exports, require('./selectors'));
 Object.assign(module.exports, require('./actions'));
+Object.assign(module.exports, require('./hooks'));
+
