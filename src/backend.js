@@ -131,7 +131,7 @@ function reportSuccess(req) {
   const data = getDataForMonitor(req)
   const heads = req.config.headers || {}
 
-  if (req.config.method != 'get' && req.ok && req.status <= 300 && !heads['doNotLoad'] && !data?.doNotLoad) {
+  if (req.config.method != 'get' && req.ok && req.status <= 300 && !data?.doNotLoad ) {
     config.success()
   }
 }

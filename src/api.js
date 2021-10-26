@@ -14,7 +14,7 @@ const handleErrors = (data) => {
 
 const funcOrValue = (val, arg) => (_.isFunction(val) ? val(arg) : val)
 
-export async function add(kind, params, {localKind, url = '', extraParams = {}, local = true} = {}) {
+export async function add(kind, params, {localKind, url = '', extraParams = {}, local = true, ...rest} = {}) {
   kind = sanitizeKind(kind)
   const isCreate = !params['id']
   const meth = isCreate ? backend.post : backend.put
@@ -24,8 +24,7 @@ export async function add(kind, params, {localKind, url = '', extraParams = {}, 
   const urls = isCreate ? config.createUrls : config.updateUrls
   const _url = urls[kind] ? funcOrValue(urls[kind], params['id']) : standardUrl
   const finalParams = {...obj, ...extraParams}
-
-  const res = await meth(_url, finalParams)
+  const res = await meth(_url, finalParams, rest)
   if (!local) return res
   return handleRes(res, localKind || kind, params)
 }
@@ -110,15 +109,23 @@ export async function index(
   const cacheKind = makeCacheKind(createKind, filters)
 
   const {stamps = {}, currentItems = []} = ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted, cacheKind)
-  const currentIds = currentItems.map(i => i.id)
+  const currentIds = currentItems.map((i) => i.id)
   const deletedStamp = ignoreDelStamp || refresh ? null : getDelStamp(camelKind)
   let condParams = {}
-  
+
   if (utils.exists(filters)) {
     condParams['filters'] = filters
   }
 
-  const res = await backend.get(url, {new_web: true, ...params, currentIds, ...stamps, ...condParams, deletedStamp, direction: inverted && 'older'})
+  const res = await backend.get(url, {
+    new_web: true,
+    ...params,
+    currentIds,
+    ...stamps,
+    ...condParams,
+    deletedStamp,
+    direction: inverted && 'older',
+  })
 
   if (res.ok) {
     let {data} = res
