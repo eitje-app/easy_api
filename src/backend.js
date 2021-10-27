@@ -115,8 +115,9 @@ function handleErrors(res) {
   const errs = res.data?.errors || res.errors || res.data
 
   if (res.status === 422) {
-    config.formErrors ? config.alert(t('oops'), t('recordInvalid')) : reportValidationErrs(errs)
-    return
+    // config.formErrors ? config.alert(t('oops'), t('recordInvalid')) : reportValidationErrs(errs)
+    // reportValidationErrs(errs)
+    // return
   }
 
   if (errs && !errs?.exception) {
@@ -131,7 +132,7 @@ function reportSuccess(req) {
   const data = getDataForMonitor(req)
   const heads = req.config.headers || {}
 
-  if (req.config.method != 'get' && req.ok && req.status <= 300 && !data?.doNotLoad ) {
+  if (req.config.method != 'get' && req.ok && req.status <= 300 && !data?.doNotLoad) {
     config.success()
   }
 }
