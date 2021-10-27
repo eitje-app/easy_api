@@ -284,6 +284,7 @@ const makeArbDefault = (config) => {
 
 export async function arbitrary(kind, url, config = {}) {
   const {params, method} = makeArbDefault(config)
+  kind = sanitizeKind(kind)
 
   const _url = !kind || url.match(/\//) ? url : `${kind}/${url}`
 
