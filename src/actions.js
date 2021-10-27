@@ -26,6 +26,8 @@ export const findRecord = (entities, query) => {
 
 export const filterRecords = (entities, query) => {
   return entities.filter((e) => {
+    if (_.isArray(query)) return query.includes(e.id)
+    if (_.isNumber(query)) return Number(query) == e.id
     const keys = Object.keys(query)
     return filterKeys(keys, query, e)
   })
