@@ -134,14 +134,16 @@ export async function index(
     let mappedItems = items
     const hasForce = force || localForce || refresh
     mappedItems = afterIndex(kind, items, {localKind: cacheKind})
-    config.store.dispatch({
-      type: 'INDEX_RECORDS',
-      force: hasForce,
-      items: mappedItems,
-      deletedStamp: deleted_stamp,
-      kind: createKind,
-      delKind: camelKind,
-    })
+    if (items.length > 0 || hasForce) {
+      config.store.dispatch({
+        type: 'INDEX_RECORDS',
+        force: hasForce,
+        items: mappedItems,
+        deletedStamp: deleted_stamp,
+        kind: createKind,
+        delKind: camelKind,
+      })
+    }
     return {...res, items: mappedItems}
   } else {
   }
