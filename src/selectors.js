@@ -7,12 +7,14 @@ import {findRecord, inverseFilterRecords, filterRecords, includesRecord, filterB
 import {config} from './config'
 import pluralize from 'pluralize'
 
+const sanitizeKind = (kind) => pluralize(utils.snakeToCamel(kind))
+
 const authUserSelector = (state) => state.auth.user
 const usersSelector = (state) => state.records.users
 
 export const all = createCachedSelector(
   (state) => state.records,
-  (state, key) => pluralize(key), // In the current setup, we could just accept an array!
+  (state, key) => sanitizeKind(key), // In the current setup, we could just accept an array!
   (ents, key) => config.enrichRecords(ents, key) || ents[key] || [],
 )((ents, key) => key)
 
