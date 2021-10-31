@@ -74,6 +74,11 @@ const endLoad = (req) => {
 }
 
 function setErrors(errors) {
+  errors = utils.alwaysDefinedArray(errors)
+  errors.forEach(reportError)
+}
+
+const reportError = (errors) => {
   const hasError = _.isObject(errors) && Object.keys(errors).length > 0
   let err
   if (hasError) {
@@ -82,9 +87,8 @@ function setErrors(errors) {
   } else {
     err = _.isString(errors) ? errors : t('unexpectedIssue')
   }
-  if (_.isString(err)) {
-    config.alert(config.t('oops'), err)
-  }
+  if (!_.isString(err)) return
+  config.alert(config.t('oops'), err)
 }
 
 function reportValidationErrs(errors) {
@@ -99,14 +103,13 @@ const restStatusses = [410]
 function handleErrors(res) {
   const {t, alert, ignoreErrors} = config
   if (restStatusses.includes(res.status)) return // these errors are resource-specific and thus handled by my higher-level counterpart
-
   if (ignoreErrors(res)) return
 
   if (res.problem === 'NETWORK_ERROR') {
     alert(t('oops'), t('networkUnreachable'))
     return
   }
-  if (res.status < 400) return
+
   if (res.status === 403) {
     alert(t('oops'), t('unauthorized'))
     return
@@ -122,10 +125,10 @@ function handleErrors(res) {
 
   if (errs && !errs?.exception) {
     setErrors(errs)
-  } else {
-    if (res.status == 401) return
-    config.alert(config.t('oops'), config.t('unexpectedIssue'))
+    return
   }
+  if (res.status <= 401) return
+  config.alert(config.t('oops'), config.t('unexpectedIssue'))
 }
 
 function reportSuccess(req) {
