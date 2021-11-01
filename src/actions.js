@@ -48,7 +48,7 @@ const filterKeys = (keys, query, record) => {
   })
 }
 
-const filterRecord = (queryVal, recordVal) => {
+export const filterRecord = (queryVal, recordVal) => {
   const args = [queryVal, recordVal]
   queryVal = sanitizeVal(queryVal)
   recordVal = sanitizeVal(recordVal)
