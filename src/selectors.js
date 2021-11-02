@@ -14,16 +14,22 @@ const authUserSelector = (state) => state.auth.user
 const usersSelector = (state) => state.records.users
 
 export const all = createCachedSelector(
-  (state, key, opts = {}) => findRelevantRecords(state.records, sanitizeKind(key), opts),
-  (state, key) => sanitizeKind(key),
-  (state, key, opts) => opts,
+  (state, key, opts = {}) => state.records,
+  (state, key) => sanitizeKind(key), // In the current setup, we could just accept an array!
+  (state, key, opts = {}) => opts,
   (ents, key, opts) => buildRecords(ents, key, opts) || [],
-)((ents, key, opts = {}) => `${key}-${JSON.stringify(opts)}`)
+)((ents, key, opts) => {
+  if (opts?.joins) {
+    return `${key}-${JSON.stringify(opts)}`
+  }
+  return key
+})
 
-const buildRecords = (ents = {}, key) => {
+const buildRecords = (ents = {}, key, opts = {}) => {
+  if (!_.isObject(opts)) opts = {}
+  const joinKeys = utils.alwaysDefinedArray(opts.joins)
   let final = enrichRecords(ents, key)
-  const keys = Object.keys(ents).filter((k) => k != key)
-  keys.forEach((k) => {
+  joinKeys.forEach((k) => {
     final = joins({items: final, mergeItems: enrichRecords(ents, k), tableName: key, mergeTableName: k})
   })
 
@@ -37,6 +43,8 @@ const findRelevantRecords = (allRecords, key, {joins = []}) => {
   return _.pick(allRecords, [key, ...joins])
 }
 
+const allExternal = (state, key) => all(state, key)
+
 export const selfSelector = createSelector(
   authUserSelector,
   (state) => all(state, 'users'),
@@ -44,42 +52,42 @@ export const selfSelector = createSelector(
 )
 
 export const find = createCachedSelector(
-  all,
+  allExternal,
   (state, key) => key,
   (state, key, query) => query,
   (records, key, query) => findRecord(records, query) || {},
 )((state, key, query) => `${key}-${JSON.stringify(query)}`)
 
 export const includes = createCachedSelector(
-  all,
+  allExternal,
   (state, key) => key,
   (state, key, query) => query,
   (records, key, query) => includesRecord(records, query) || [],
 )((state, key, query) => `${key}-${JSON.stringify(query)}`)
 
 export const where = createCachedSelector(
-  all,
+  allExternal,
   (state, key) => key,
   (state, key, query) => query,
   (records, key, query) => (query ? filterRecords(records, query) : records) || [],
 )((state, key, query) => `${key}-${JSON.stringify(query)}`)
 
 export const whereNot = createCachedSelector(
-  all,
+  allExternal,
   (state, key) => key,
   (state, key, query) => query,
   (records, key, query) => inverseFilterRecords(records, query) || [],
 )((state, key, query) => `${key}-${JSON.stringify(query)}`)
 
 export const betweenDays = createCachedSelector(
-  all,
+  allExternal,
   (state, key) => key,
   (state, key, query) => query,
   (records, key, query) => filterByDate(records, query),
 )((state, key, query) => `${key}-${JSON.stringify(query)}`)
 
 export const afterToday = createCachedSelector(
-  all,
+  allExternal,
   (state, key) => key,
   (records) => filterByDate(records, {start: moment().format('YYYY-MM-DD')}),
 )((state, key) => key)
