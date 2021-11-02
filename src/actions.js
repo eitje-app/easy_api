@@ -70,6 +70,7 @@ const filterRanges = (queryVal, recordVal) => {
 }
 
 const sanitizeVal = (val) => {
+  if (val instanceof moment) return val.format('YYYY-MM-DD')
   if (_.isString(val)) return sanitizeString(val)
   return val
 }
