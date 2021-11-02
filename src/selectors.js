@@ -14,7 +14,7 @@ const authUserSelector = (state) => state.auth.user
 const usersSelector = (state) => state.records.users
 
 export const all = createCachedSelector(
-  (state, key, opts = {}) => findRelevantRecords(state.records, key, opts),
+  (state, key, opts = {}) => findRelevantRecords(state.records, sanitizeKind(key), opts),
   (state, key) => sanitizeKind(key),
   (state, key, opts) => opts,
   (ents, key, opts) => buildRecords(ents, key, opts) || [],
