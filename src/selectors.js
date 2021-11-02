@@ -32,7 +32,6 @@ const buildRecords = (ents = {}, key, opts = {}) => {
   joinKeys.forEach((k) => {
     final = joins({items: final, mergeItems: enrichRecords(ents, k), tableName: key, mergeTableName: k})
   })
-
   return final
 }
 
