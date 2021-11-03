@@ -32,7 +32,7 @@ const checkMultiple = (tableName, joinTableName) => {
   return tableConfig['hasMany'] && tableConfig['hasMany'].includes(joinTableName)
 }
 
-const figureOutFieldName = ({items, mergeItems, tableName, mergeTableName}) => {
+const figureOutFieldName = ({items = [], mergeItems = [], tableName, mergeTableName}) => {
   let fieldName
   const sample = items[0]
   const mergeSample = mergeItems[0]
