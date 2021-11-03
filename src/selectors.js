@@ -23,7 +23,7 @@ const allowedOpts = ['joins']
 
 const sanitizeOpts = (opts) => {
   if (!_.isObject(opts)) return null
-  if (!utils.intersects(opts, allowedOpts)) return null
+  if (!utils.intersects(Object.keys(opts), allowedOpts)) return null
   return opts
 }
 
