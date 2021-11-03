@@ -13,16 +13,27 @@ const sanitizeKind = (kind) => pluralize(utils.snakeToCamel(kind))
 const authUserSelector = (state) => state.auth.user
 const usersSelector = (state) => state.records.users
 
+// 217 > 101
+// ({[key]: records[key]}): 217
+// _.pick(records, 'key'): 217
+// records[key]: 41
+// state.records: 101
+
+const allowedOpts = ['joins']
+
+const sanitizeOpts = (opts) => {
+  if (!_.isObject(opts)) return null
+  if (!utils.intersects(opts, allowedOpts)) return null
+  return opts
+}
+
 export const all = createCachedSelector(
-  (state, key, opts = {}) => state.records,
+  (state, key, opts) => (sanitizeOpts(opts) ? state.records : state.records[key]),
   (state, key) => sanitizeKind(key), // In the current setup, we could just accept an array!
-  (state, key, opts = {}) => opts,
-  (ents, key, opts) => buildRecords(ents, key, opts) || [],
-)((ents, key, opts) => {
-  if (opts?.joins) {
-    return `${key}-${JSON.stringify(opts)}`
-  }
-  return key
+  (state, key, opts) => sanitizeOpts(opts),
+  (ents, key, opts) => buildRecords(opts ? ents : {[key]: ents}, key, opts) || [],
+)((ents, key, opts = {}) => {
+  return `${key}-${JSON.stringify(opts)}`
 })
 
 const buildRecords = (ents = {}, key, opts = {}) => {
@@ -36,11 +47,6 @@ const buildRecords = (ents = {}, key, opts = {}) => {
 }
 
 const enrichRecords = (ents, key) => config.enrichRecords(ents, key) || ents[key]
-
-const findRelevantRecords = (allRecords, key, {joins = []}) => {
-  joins = utils.alwaysDefinedArray(joins)
-  return _.pick(allRecords, [key, ...joins])
-}
 
 const allExternal = (state, key) => all(state, key)
 
