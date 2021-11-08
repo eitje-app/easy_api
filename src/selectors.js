@@ -27,8 +27,13 @@ const sanitizeOpts = (opts) => {
   return opts
 }
 
+const findRecords = (state, kind, opts) => {
+  kind = sanitizeKind(kind)
+  return sanitizeOpts(opts) ? state.records : state.records[kind]
+}
+
 export const all = createCachedSelector(
-  (state, key, opts) => (sanitizeOpts(opts) ? state.records : state.records[key]),
+  findRecords,
   (state, key) => sanitizeKind(key), // In the current setup, we could just accept an array!
   (state, key, opts) => sanitizeOpts(opts),
   (ents, key, opts) => buildRecords(opts ? ents : {[key]: ents}, key, opts) || [],

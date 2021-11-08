@@ -10,7 +10,7 @@ import {filterRecord} from './actions'
 
 const dbConfig = {
   user: {
-    hasMany: ['userEmploymentType', 'workSchedule'],
+    hasMany: ['userEmploymentType', 'workSchedule', 'contractHolder'],
   },
 }
 
