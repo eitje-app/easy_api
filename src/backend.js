@@ -115,7 +115,8 @@ function handleErrors(res) {
     return
   }
 
-  const errs = res.data?.errors || res.errors || res.data
+  let errs = res.data?.errors || res.errors
+  if (res.status > 400 && !errs) errs = res.data
 
   if (res.status === 422) {
     // config.formErrors ? config.alert(t('oops'), t('recordInvalid')) : reportValidationErrs(errs)
