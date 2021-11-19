@@ -19,7 +19,7 @@ export const joins = ({tableName, mergeTableName, ...rest}) => {
   mergeTableName = pluralize.singular(mergeTableName)
   const args = {...rest, tableName, mergeTableName}
   const fieldName = figureOutFieldName(args)
-  if (!fieldName) return items
+  if (!fieldName) return rest.items
   const isMultiple = checkMultiple(tableName, mergeTableName)
   const mergeItemLeading = fieldName.includes(tableName)
 
