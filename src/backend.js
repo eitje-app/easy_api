@@ -26,7 +26,7 @@ const createApi = () => {
   return api
 }
 
-const serializeNestedParams = (params) => Qs.stringify(params, {arrayFormat: 'repeat'})
+const serializeNestedParams = (params) => Qs.stringify(params, {arrayFormat: 'brackets'})
 
 async function changeTokenHeader(req) {
   if (req.url !== 'oauth/token' && req.url !== 'auth' && req.url !== 'users/sign_up' && req.url !== 'auth/confirmed') {
