@@ -93,7 +93,6 @@ export default function reduce(state = initialState, action) {
       let ids = (_.isArray(action.id) ? action.id : [action.id]).map((i) => Number(i))
       if (!state[action.kind]) return state
       const delItems = [...state[action.kind]].filter((i) => !ids.includes(i.id))
-      debugger
       return {
         ...state,
         [action.kind]: sortFunc(delItems, action.kind),
