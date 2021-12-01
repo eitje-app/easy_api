@@ -79,8 +79,9 @@ export const where = createCachedSelector(
   allExternal,
   (state, key) => key,
   (state, key, query) => query,
-  (records, key, query) => (query ? filterRecords(records, query) : records) || [],
-)((state, key, query) => `${key}-${JSON.stringify(query)}`)
+  (state, key, query, opts) => opts || '',
+  (records, key, query, opts) => (query ? filterRecords(records, query, opts) : records) || [],
+)((state, key, query, opts) => `${key}-${JSON.stringify(query)}-${opts}`)
 
 export const whereNot = createCachedSelector(
   allExternal,

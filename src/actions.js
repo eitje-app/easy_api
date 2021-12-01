@@ -24,12 +24,14 @@ export const findRecord = (entities, query) => {
   })
 }
 
-export const filterRecords = (entities, query) => {
+// exact: literally compare both values, no array/range magic
+
+export const filterRecords = (entities, query, options) => {
   return entities.filter((e) => {
     if (_.isArray(query)) return query.includes(e.id)
     if (_.isNumber(query)) return Number(query) == e.id
     const keys = Object.keys(query)
-    return filterKeys(keys, query, e)
+    return filterKeys(keys, query, e, options)
   })
 }
 
@@ -40,21 +42,22 @@ export const inverseFilterRecords = (entities, query) => {
   })
 }
 
-const filterKeys = (keys, query, record) => {
+const filterKeys = (keys, query, record, options) => {
   return keys.every((k) => {
     const queryVal = query[k]
     const recordVal = record[k]
-    return filterRecord(queryVal, recordVal)
+    return filterRecord(queryVal, recordVal, options)
   })
 }
 
-export const filterRecord = (queryVal, recordVal) => {
+export const filterRecord = (queryVal, recordVal, {exact} = {}) => {
   const args = [queryVal, recordVal]
   queryVal = sanitizeVal(queryVal)
   recordVal = sanitizeVal(recordVal)
-  if (hasArray(args)) return filterArrays(queryVal, recordVal)
+  if (exact) debugger
+  if (!exact && hasArray(args)) return filterArrays(queryVal, recordVal)
   if (hasRange(args)) return filterRanges(queryVal, recordVal)
-  return queryVal === recordVal
+  return _.isEqual(queryVal, recordVal)
 }
 
 const hasRange = (arr) => arr.some((i) => isRange(i))
