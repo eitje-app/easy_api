@@ -3,6 +3,7 @@ import {create} from 'apisauce'
 import utils from '@eitje/utils'
 import _ from 'lodash'
 import Qs from 'qs'
+import moment from 'moment'
 
 let api
 const createApi = () => {
@@ -16,6 +17,7 @@ const createApi = () => {
   api.addAsyncRequestTransform((request) => setVersion(request))
   api.addAsyncRequestTransform((request) => changeTokenHeader(request))
   api.addRequestTransform((request) => startLoad(request))
+  api.addRequestTransform(sanitizeParams)
 
   api.addMonitor(authMonitor)
   //
@@ -24,6 +26,36 @@ const createApi = () => {
   if (config.reportSuccess) api.addMonitor(reportSuccess)
 
   return api
+}
+
+_.mixin({
+  deeply: function (map) {
+    return function (obj, fn) {
+      return map(
+        _.mapValues(obj, function (v) {
+          return _.isPlainObject(v) ? _.deeply(map)(v, fn) : v
+        }),
+        fn,
+      )
+    }
+  },
+  deepTransformValues: (obj, mapper) => {
+    return _.deeply(_.mapValues)(obj, mapper)
+  },
+})
+
+// MOVE ^ TO EITJE-CORE
+
+const sanitizeMoment = (v) => (v instanceof moment ? v.format('YYYY-MM-DD') : v)
+
+const sanitizeParams = (request) => {
+  request.params = _sanitizeParams(request.params)
+  request.data = _sanitizeParams(request.data)
+}
+
+const _sanitizeParams = (obj) => {
+  if (!obj) return
+  return _.deepTransformValues(obj, sanitizeMoment)
 }
 
 const serializeNestedParams = (params) => Qs.stringify(params, {arrayFormat: 'brackets'})
