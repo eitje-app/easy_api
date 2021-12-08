@@ -117,15 +117,20 @@ export async function index(
     condParams['filters'] = filters
   }
 
-  const res = await backend.get(url, {
+  const finalParams = {
     new_web: true,
     ...params,
-    currentIds,
     ...stamps,
     ...condParams,
     deletedStamp,
     direction: inverted && 'older',
-  })
+  }
+
+  if (!config.noCurrentIds) {
+    finalParams['currentIds'] = currentIds
+  }
+
+  const res = await backend.get(url, finalParams)
 
   if (res.ok) {
     let {data} = res
