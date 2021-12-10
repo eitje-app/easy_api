@@ -49,6 +49,9 @@ _.mixin({
 const sanitizeMoment = (v) => (v instanceof moment ? v.format('YYYY-MM-DD') : v)
 
 const sanitizeParams = (request) => {
+  const {headers = {}} = request
+  const contentType = headers['Content-Type']
+  if (contentType == 'multipart/form-data') return
   request.params = _sanitizeParams(request.params)
   request.data = _sanitizeParams(request.data)
 }
