@@ -29,6 +29,7 @@ export const joins = ({tableName, mergeTableName, ...rest}) => {
 
 const checkMultiple = (tableName, joinTableName) => {
   const tableConfig = dbConfig[tableName]
+  if (!tableConfig) return
   return tableConfig['hasMany'] && tableConfig['hasMany'].includes(joinTableName)
 }
 
