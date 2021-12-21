@@ -54,7 +54,6 @@ export const filterRecord = (queryVal, recordVal, {exact} = {}) => {
   const args = [queryVal, recordVal]
   queryVal = sanitizeVal(queryVal)
   recordVal = sanitizeVal(recordVal)
-  if (exact) debugger
   if (!exact && hasArray(args)) return filterArrays(queryVal, recordVal)
   if (hasRange(args)) return filterRanges(queryVal, recordVal)
   return _.isEqual(queryVal, recordVal)

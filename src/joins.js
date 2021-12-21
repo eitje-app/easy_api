@@ -8,9 +8,10 @@ import {config} from './config'
 import pluralize from 'pluralize'
 import {filterRecord} from './actions'
 
-const dbConfig = {
+export const dbConfig = {
+  
   user: {
-    hasMany: ['userEmploymentType', 'workSchedule', 'contractHolder'],
+    hasMany: ['userEmploymentType', 'workSchedule', 'contractHolder', 'team'],
   },
 }
 
@@ -27,7 +28,9 @@ export const joins = ({tableName, mergeTableName, ...rest}) => {
   return extendSingular({...args, mergeItemLeading, fieldName})
 }
 
-const checkMultiple = (tableName, joinTableName) => {
+export const checkMultiple = (tableName, joinTableName) => {
+  tableName = pluralize.singular(tableName)
+  joinTableName = pluralize.singular(joinTableName)
   const tableConfig = dbConfig[tableName]
   if (!tableConfig) return
   return tableConfig['hasMany'] && tableConfig['hasMany'].includes(joinTableName)

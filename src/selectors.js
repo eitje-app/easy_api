@@ -6,7 +6,7 @@ import utils from '@eitje/utils'
 import {findRecord, inverseFilterRecords, filterRecords, includesRecord, filterByDate} from './actions'
 import {config} from './config'
 import pluralize from 'pluralize'
-import joins from './joins'
+import joins, {checkMultiple} from './joins'
 
 const sanitizeKind = (kind) => pluralize(utils.snakeToCamel(kind))
 
@@ -27,28 +27,66 @@ const sanitizeOpts = (opts) => {
   return opts
 }
 
-const findRecords = (state, kind, opts) => {
+const getModel = key => {
+  const model = config.models[key]
+  return {model, defaultJoins: model?.defaultJoins}
+}
+
+const findRecords = (state, kind, opts = {}) => {
+  const {model, defaultJoins} = getModel(kind)
+  if(defaultJoins) {
+    opts = {...opts, joins: utils.composeArray(opts.joins, defaultJoins) }
+  }
+  
   kind = sanitizeKind(kind)
   return sanitizeOpts(opts) ? state.records : state.records[kind]
 }
 
 export const all = createCachedSelector(
   findRecords,
-  (state, key) => sanitizeKind(key), // In the current setup, we could just accept an array!
+  (state, key) => sanitizeKind(key),
   (state, key, opts) => sanitizeOpts(opts),
-  (ents, key, opts) => buildRecords(opts ? ents : {[key]: ents}, key, opts) || [],
+  (ents, key, opts) => _buildRecords(ents, key, opts),
 )((ents, key, opts = {}) => {
   return `${key}-${JSON.stringify(opts)}`
 })
 
+const _buildRecords =  (ents, key, opts) => {
+  const records = ents && ents['deletedStamps'] ? ents : {[key]: ents} // deletedStamps is always present, tells us if we hae all ents or just a slice. This is needed for findRecords' performance
+  return buildRecords(records, key, opts) || [] 
+}
+
+
 const buildRecords = (ents = {}, key, opts = {}) => {
   if (!_.isObject(opts)) opts = {}
-  const joinKeys = utils.alwaysDefinedArray(opts.joins)
-  let final = enrichRecords(ents, key)
+  const {model, defaultJoins } = getModel(key)
+  const joinKeys = utils.composeArray(opts.joins, defaultJoins)
+  let final = enrichRecords(ents, key)  || []
+
   joinKeys.forEach((k) => {
     final = joins({items: final, mergeItems: enrichRecords(ents, k), tableName: key, mergeTableName: k})
   })
-  return final
+  return final.map(i => buildFullRecord(i, key, joinKeys)) 
+}
+
+const buildFullRecord = (item, key, joinKeys) => {
+  const record = buildClassRecord(item, key)
+  joinKeys.forEach(joinKey => {
+    const isMultiple = checkMultiple(key, joinKey)
+    const actualJoinKey = isMultiple ? pluralize.plural(joinKey) : pluralize.singular(joinKey)
+    if(record[actualJoinKey]) {
+      record[actualJoinKey] = isMultiple ? record[actualJoinKey].map(i => buildClassRecord(i, actualJoinKey)) : buildClassRecord(record[actualJoinKey], actualJoinKey)
+    }
+    
+  })
+
+  return record;
+}
+
+const buildClassRecord = (item, key) => {
+  key = pluralize.plural(key)
+  const {model} = getModel(key)
+  return model ? new model(item) : item
 }
 
 const enrichRecords = (ents, key) => config.enrichRecords(ents, key) || ents[key]

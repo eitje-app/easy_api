@@ -25,6 +25,7 @@ const defaultConfig = {
   indexUrls: empty,
   enrichRecords: emptyFunc,
   success: noop,
+  models: {}
 }
 
 let config = defaultConfig
