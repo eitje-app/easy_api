@@ -184,7 +184,7 @@ export async function destroyMutation(kind, id) {
 export async function destroy(kind, id, extraParams = {}) {
   const url = config.deleteUrls[kind] ? funcOrValue(config.deleteUrls[kind], id) : `${kind}/${id}`
   const res = await backend.delete(url)
-  if (res.ok && !res?.data?.destroyed_ids && !res.data.items) {
+  if (res.ok && res.data && !res.data.destroyed_ids && !res.data.items) {
     destroyLocal(kind, id, extraParams)
     return {ok: true}
   } else {
