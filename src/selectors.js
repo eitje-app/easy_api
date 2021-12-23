@@ -27,17 +27,17 @@ const sanitizeOpts = (opts) => {
   return opts
 }
 
-const getModel = key => {
+const getModel = (key) => {
   const model = config.models[key]
   return {model, defaultJoins: model?.defaultJoins}
 }
 
 const findRecords = (state, kind, opts = {}) => {
   const {model, defaultJoins} = getModel(kind)
-  if(defaultJoins) {
-    opts = {...opts, joins: utils.composeArray(opts.joins, defaultJoins) }
+  if (defaultJoins) {
+    opts = {...opts, joins: utils.composeArray(opts.joins, defaultJoins)}
   }
-  
+
   kind = sanitizeKind(kind)
   return sanitizeOpts(opts) ? state.records : state.records[kind]
 }
@@ -51,36 +51,36 @@ export const all = createCachedSelector(
   return `${key}-${JSON.stringify(opts)}`
 })
 
-const _buildRecords =  (ents, key, opts) => {
+const _buildRecords = (ents, key, opts) => {
   const records = ents && ents['deletedStamps'] ? ents : {[key]: ents} // deletedStamps is always present, tells us if we hae all ents or just a slice. This is needed for findRecords' performance
-  return buildRecords(records, key, opts) || [] 
+  return buildRecords(records, key, opts) || []
 }
-
 
 const buildRecords = (ents = {}, key, opts = {}) => {
   if (!_.isObject(opts)) opts = {}
-  const {model, defaultJoins } = getModel(key)
+  const {model, defaultJoins} = getModel(key)
   const joinKeys = utils.composeArray(opts.joins, defaultJoins)
-  let final = enrichRecords(ents, key)  || []
+  let final = enrichRecords(ents, key) || []
 
   joinKeys.forEach((k) => {
     final = joins({items: final, mergeItems: enrichRecords(ents, k), tableName: key, mergeTableName: k})
   })
-  return final.map(i => buildFullRecord(i, key, joinKeys)) 
+  return config.createAssociation(final.map((i) => buildFullRecord(i, key, joinKeys)))
 }
 
 const buildFullRecord = (item, key, joinKeys) => {
   const record = buildClassRecord(item, key)
-  joinKeys.forEach(joinKey => {
+  joinKeys.forEach((joinKey) => {
     const isMultiple = checkMultiple(key, joinKey)
     const actualJoinKey = isMultiple ? pluralize.plural(joinKey) : pluralize.singular(joinKey)
-    if(record[actualJoinKey]) {
-      record[actualJoinKey] = isMultiple ? record[actualJoinKey].map(i => buildClassRecord(i, actualJoinKey)) : buildClassRecord(record[actualJoinKey], actualJoinKey)
+    if (record[actualJoinKey]) {
+      record[actualJoinKey] = isMultiple
+        ? config.createAssociation(record[actualJoinKey].map((i) => buildClassRecord(i, actualJoinKey)))
+        : buildClassRecord(record[actualJoinKey], actualJoinKey)
     }
-    
   })
 
-  return record;
+  return record
 }
 
 const buildClassRecord = (item, key) => {

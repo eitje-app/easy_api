@@ -1,3 +1,5 @@
+import {Fragment} from 'react'
+
 const noop = (i) => i
 const emptyFunc = (i) => null
 let empty = {}
@@ -25,10 +27,22 @@ const defaultConfig = {
   indexUrls: empty,
   enrichRecords: emptyFunc,
   success: noop,
-  models: {}
+  Association: null,
+  ApplicationRecord: null,
+  models: {},
 }
 
-let config = defaultConfig
+const createAssociation = (arr) => {
+  if (!config.Association) return arr
+  return new config.Association(arr)
+}
+
+const createApplicationRecord = (item) => {
+  if (!config.ApplicationRecord) return item
+  return new config.ApplicationRecord(arr)
+}
+
+let config = {...defaultConfig, createAssociation, createApplicationRecord}
 
 const setup = (obj) => {
   config = {...config, ...obj}
