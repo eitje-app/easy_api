@@ -173,7 +173,7 @@ export async function show(kind, id, {extraParams = {}, localKind} = {}) {
 export const create = add
 export const update = add
 
-const sanitizeKind = (kind) => pluralize(utils.camelToSnake(kind))
+const sanitizeKind = (kind) => kind ? pluralize(utils.camelToSnake(kind)) : kind
 
 export async function destroyMutation(kind, id) {
   kind = sanitizeKind(kind)
