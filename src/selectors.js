@@ -53,7 +53,7 @@ const buildRecords = (ents = {}, key, opts = {}) => {
 
 const enrichRecords = (ents, key) => config.enrichRecords(ents, key) || ents[key]
 
-const allExternal = (state, key) => all(state, key)
+const allExternal = (state, key, query, opts) => (opts ? all(state, key, opts) : all(state, key))
 
 export const selfSelector = createSelector(
   authUserSelector,
