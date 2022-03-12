@@ -100,7 +100,7 @@ const makeCacheKind = (kind, filters) => {
 
 export async function index(
   kind,
-  {ignoreStamp, inverted, localKind, refresh, localForce, ignoreDelStamp, userFilter, filters = {}, params = {}} = {},
+  {ignoreStamp, inverted, localKind, refresh, overrideCacheKind, localForce, ignoreDelStamp, userFilter, filters = {}, params = {}} = {},
 ) {
   const url = config.indexUrls[kind] ? funcOrValue(config.indexUrls[kind]) : kind
 
@@ -108,7 +108,8 @@ export async function index(
   const createKind = localKind || camelKind
   const cacheKind = makeCacheKind(createKind, filters)
 
-  const {stamps = {}, currentItems = []} = ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted, cacheKind)
+  const {stamps = {}, currentItems = []} =
+    ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted, overrideCacheKind || cacheKind)
   const currentIds = currentItems.map((i) => i.id)
   const deletedStamp = ignoreDelStamp || refresh ? null : getDelStamp(camelKind)
   let condParams = {}
@@ -138,7 +139,7 @@ export async function index(
     const {items = [], force, deleted_stamp} = data
     let mappedItems = items
     const hasForce = force || localForce || refresh
-    mappedItems = afterIndex(kind, items, {localKind: cacheKind})
+    mappedItems = afterIndex(kind, items, {localKind: overrideCacheKind || cacheKind})
     if (items.length > 0 || hasForce) {
       config.store.dispatch({
         type: 'INDEX_RECORDS',
@@ -184,7 +185,7 @@ export async function destroyMutation(kind, id) {
 export async function destroy(kind, id, extraParams = {}) {
   const url = config.deleteUrls[kind] ? funcOrValue(config.deleteUrls[kind], id) : `${kind}/${id}`
   const res = await backend.delete(url)
-  if (res.ok && !res?.data?.destroyed_ids && !res.data.items) {
+  if (res.ok && res.data && !res.data.destroyed_ids && !res.data.items) {
     destroyLocal(kind, id, extraParams)
     return {ok: true}
   } else {
