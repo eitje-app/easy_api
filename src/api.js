@@ -102,7 +102,7 @@ export async function index(
   kind,
   {ignoreStamp, inverted, localKind, refresh, overrideCacheKind, localForce, ignoreDelStamp, userFilter, filters = {}, params = {}} = {},
 ) {
-  const url = config.indexUrls[kind] ? funcOrValue(config.indexUrls[kind]) : kind
+  const url = config.indexUrls[kind] ? funcOrValue(config.indexUrls[kind]) : `${kind}/index`
 
   const camelKind = utils.snakeToCamel(kind)
   const createKind = localKind || camelKind
@@ -124,6 +124,7 @@ export async function index(
     ...stamps,
     ...condParams,
     deletedStamp,
+    doNotLoad: true,
     direction: inverted && 'older',
   }
 
@@ -131,7 +132,7 @@ export async function index(
     finalParams['currentIds'] = currentIds
   }
 
-  const res = await backend.get(url, finalParams)
+  const res = await backend.post(url, finalParams)
 
   if (res.ok) {
     let {data} = res

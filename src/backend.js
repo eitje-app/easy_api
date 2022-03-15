@@ -103,7 +103,7 @@ const startLoad = (req) => {
 
 const endLoad = (req) => {
   const data = getDataForMonitor(req) || {}
-  if (data.doLoad || req.config.method !== 'get') {
+  if (data.doLoad || (req.config.method !== 'get' && !data.doNotLoad)) {
     config.store.dispatch({type: 'STOP_LOADING'})
   }
 }
@@ -152,12 +152,6 @@ function handleErrors(res) {
 
   let errs = res.data?.errors || res.errors
   if (res.status > 400 && !errs) errs = res.data
-
-  if (res.status === 422) {
-    // config.formErrors ? config.alert(t('oops'), t('recordInvalid')) : reportValidationErrs(errs)
-    // reportValidationErrs(errs)
-    // return
-  }
 
   if (errs && !errs?.exception) {
     setErrors(errs)
