@@ -108,9 +108,15 @@ export async function index(
   const createKind = localKind || camelKind
   const cacheKind = makeCacheKind(createKind, filters)
 
-  const {stamps = {}, currentItems = []} =
-    ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted, overrideCacheKind || cacheKind)
-  const currentIds = currentItems.map((i) => i.id)
+  const {
+    stamps = {},
+    currentItems = [],
+    allItems = [],
+  } = ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted, overrideCacheKind || cacheKind)
+
+  let currentIds = currentItems.map((i) => i.id)
+  const nonFetchedIds = allItems.filter((i) => !utils.exists(i.fetchedKinds)).map((i) => i.id) // we wanna include pushered and other non-fetched items to ensure they still exist
+  currentIds = [...currentIds, ...nonFetchedIds]
   const deletedStamp = ignoreDelStamp || refresh ? null : getDelStamp(camelKind)
   let condParams = {}
 
@@ -137,11 +143,12 @@ export async function index(
   if (res.ok) {
     let {data} = res
     data = data || {}
-    const {items = [], force, deleted_stamp} = data
+    const {items = [], force, destroyed_ids = [], removed_from_scope_ids = [], deleted_stamp} = data
+    console.log(removed_from_scope_ids)
     let mappedItems = items
     const hasForce = force || localForce || refresh
     mappedItems = afterIndex(kind, items, {localKind: overrideCacheKind || cacheKind})
-    if (items.length > 0 || hasForce) {
+    if (items.length > 0 || hasForce || destroyed_ids.length > 0 || removed_from_scope_ids.length > 0) {
       config.store.dispatch({
         type: 'INDEX_RECORDS',
         force: hasForce,
@@ -149,6 +156,9 @@ export async function index(
         deletedStamp: deleted_stamp,
         kind: createKind,
         delKind: camelKind,
+        destroyed_ids,
+        removed_from_scope_ids,
+        cacheKind: overrideCacheKind || cacheKind,
       })
     }
     return {...res, items: mappedItems}

@@ -46,8 +46,26 @@ export default function reduce(state = initialState, action) {
 
     case 'INDEX_RECORDS':
       let oldItems = state[action.kind]
+
+      if (_.isArray(action.destroyed_ids)) {
+        oldItems = oldItems.filter((i) => !action.destroyed_ids.includes(i.id))
+      }
+
+      if (_.isArray(action.removed_from_scope_ids)) {
+        oldItems = oldItems
+          .map((i) => {
+            if (!action.removed_from_scope_ids.includes(i.id)) return i
+            let {fetchedKinds = []} = i
+            if (fetchedKinds.length == 0) return i // allow pushered or other items to remain if they're removed from scope, we're only interested in items that were fetched through this scope and ONLY through this scope before
+            fetchedKinds = fetchedKinds.filter((k) => k != action.cacheKind)
+            return fetchedKinds.length == 0 ? null : {...i, fetchedKinds}
+          })
+          .filter(Boolean)
+      }
+
       const newItems = action.items
       let indexItems = action.force ? newItems : utils.findAndReplace({oldItems, newItems, mapFunc: mapFetchedKinds})
+
       indexItems = _.uniqBy(indexItems, 'id')
       let sorted = sortFunc(indexItems, action.kind).map((i) => ({
         ...i,
