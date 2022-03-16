@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/eitje-app/easy_api#readme",
   "peerDependencies": {
-    "@eitje/react-hooks": "1.x"
+    "@eitje/react-hooks": "1.x",
+    "pako": "^2.0.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.1",

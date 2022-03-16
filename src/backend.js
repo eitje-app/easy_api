@@ -1,9 +1,11 @@
 import {config} from './config'
 import {create} from 'apisauce'
+import axios from 'axios'
 import utils from '@eitje/utils'
 import _ from 'lodash'
 import Qs from 'qs'
 import moment from 'moment'
+import pako from 'pako'
 
 let api
 const createApi = () => {
@@ -11,6 +13,7 @@ const createApi = () => {
     baseURL: config.baseURL,
     headers: {'Content-Type': 'application/json', credentials: 'same-origin', 'Access-Control-Allow-Origin': '*'},
     paramsSerializer: serializeNestedParams,
+    transformRequest: [...axios.defaults.transformRequest, compressRequest],
     ...config.apiConfig,
   })
 
@@ -45,6 +48,18 @@ _.mixin({
 })
 
 // MOVE ^ TO EITJE-CORE
+
+const compressRequest = (data, headers) => {
+  if (typeof data === 'string' && data.length > 1024) {
+    headers['Content-Encoding'] = 'gzip'
+    headers['Content-Type'] = 'gzip/json'
+    return pako.gzip(data)
+  } else {
+    // delete is slow apparently, faster to set to undefined
+    headers['Content-Encoding'] = undefined
+    return data
+  }
+}
 
 const sanitizeMoment = (v) => (v instanceof moment ? v.format('YYYY-MM-DD') : v)
 
@@ -89,9 +104,20 @@ const getData = (req) => {
   return {...params, ...data}
 }
 
+const indexRegex = /\/index$/
+
+const isIndexUrl = (req) => {
+  const {indexUrls = {}} = config
+  const urls = Object.values(indexUrls)
+  const url = req.config?.url || req.url
+  return url.match(indexRegex) || urls.includes(url)
+}
+
 const startLoad = (req) => {
   const data = getData(req)
   const isMultiPart = req.headers['Content-Type'] === 'multipart/form-data'
+  if (isIndexUrl(req)) return
+
   if (
     data.doLoad ||
     req.headers['doLoad'] ||
@@ -103,6 +129,7 @@ const startLoad = (req) => {
 
 const endLoad = (req) => {
   const data = getDataForMonitor(req) || {}
+  if (isIndexUrl(req)) return
   if (data.doLoad || (req.config.method !== 'get' && !data.doNotLoad)) {
     config.store.dispatch({type: 'STOP_LOADING'})
   }
@@ -162,11 +189,12 @@ function handleErrors(res) {
 }
 
 function reportSuccess(req) {
+  if (isIndexUrl(req)) return
   const data = getDataForMonitor(req)
   const heads = req.config.headers || {}
-
   if (req.config.method != 'get' && req.ok && req.status <= 300 && !data?.doNotLoad) {
     config.success()
+    console.log(req)
   }
 }
 
