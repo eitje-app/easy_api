@@ -292,10 +292,12 @@ const makeArbDefault = (config) => {
 
 export async function arbitrary(kind, url, config = {}) {
   const {params, method} = makeArbDefault(config)
+  const extraParams = config.extraParams || {}
   kind = sanitizeKind(kind)
 
   const _url = !kind || url.match(/\//) ? url : `${kind}/${url}`
-  const finalParams = kind ? getParams(kind, params) : params
+  let finalParams = kind ? getParams(kind, params) : params
+  finalParams = {...finalParams, ...extraParams}
   const res = await backend.any({method, url: _url, data: finalParams})
   return handleRes(res, kind, params)
 }
