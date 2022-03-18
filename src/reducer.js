@@ -4,6 +4,7 @@ import {config} from './config'
 
 const initialState = {
   deletedStamps: {},
+  actionVersions: {},
 }
 
 const sortFunc = (items, kind) => {
@@ -77,6 +78,7 @@ export default function reduce(state = initialState, action) {
         ...state,
         [action.kind]: sorted,
         deletedStamps: {...state.deletedStamps, [delKind]: action.deletedStamp},
+        actionVersions: {...state.actionVersions, [action.kind]: action.action_version},
       }
 
     case 'LOCAL_INDEX_RECORDS':

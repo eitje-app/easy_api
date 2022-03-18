@@ -3,7 +3,7 @@ import utils from '@eitje/utils'
 import {config} from './config'
 import _ from 'lodash'
 import pluralize from 'pluralize'
-import {getDelStamp, getStamps, afterIndex} from './helpers'
+import {getDelStamp, getActionVersion, getStamps, afterIndex} from './helpers'
 import {upload} from './files'
 
 const {store, indexUrls, createUrls, updateUrls, deleteUrls, afterAdd} = config
@@ -118,6 +118,7 @@ export async function index(
   const nonFetchedIds = allItems.filter((i) => !utils.exists(i.fetchedKinds)).map((i) => i.id) // we wanna include pushered and other non-fetched items to ensure they still exist
   currentIds = [...currentIds, ...nonFetchedIds]
   const deletedStamp = ignoreDelStamp || refresh ? null : getDelStamp(camelKind)
+  const actionVersion = getActionVersion(camelKind)
   let condParams = {}
 
   if (utils.exists(filters)) {
@@ -130,6 +131,7 @@ export async function index(
     ...stamps,
     ...condParams,
     deletedStamp,
+    action_version: actionVersion,
     doNotLoad: true,
     direction: inverted && 'older',
   }
@@ -143,8 +145,7 @@ export async function index(
   if (res.ok) {
     let {data} = res
     data = data || {}
-    const {items = [], force, destroyed_ids = [], removed_from_scope_ids = [], deleted_stamp} = data
-    console.log(removed_from_scope_ids)
+    const {items = [], force, action_version, destroyed_ids = [], removed_from_scope_ids = [], deleted_stamp} = data
     let mappedItems = items
     const hasForce = force || localForce || refresh
     mappedItems = afterIndex(kind, items, {localKind: overrideCacheKind || cacheKind})
@@ -158,6 +159,7 @@ export async function index(
         delKind: camelKind,
         destroyed_ids,
         removed_from_scope_ids,
+        action_version,
         cacheKind: overrideCacheKind || cacheKind,
       })
     }
