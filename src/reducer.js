@@ -45,7 +45,7 @@ export default function reduce(state = initialState, action) {
       }
 
     case 'INDEX_RECORDS':
-      let oldItems = state[action.kind]
+      let oldItems = state[action.kind] || []
 
       if (_.isArray(action.destroyed_ids)) {
         oldItems = oldItems.filter((i) => !action.destroyed_ids.includes(i.id))
