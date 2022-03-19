@@ -4,6 +4,7 @@ import {config} from './config'
 
 const initialState = {
   deletedStamps: {},
+  actionVersions: {},
 }
 
 const sortFunc = (items, kind) => {
@@ -45,25 +46,41 @@ export default function reduce(state = initialState, action) {
       }
 
     case 'INDEX_RECORDS':
-      let oldItems = state[action.kind]
+      let oldItems = state[action.kind] || []
+
+      if (_.isArray(action.destroyed_ids)) {
+        oldItems = oldItems.filter((i) => !action.destroyed_ids.includes(i.id))
+      }
+
+      if (_.isArray(action.removed_from_scope_ids)) {
+        oldItems = oldItems
+          .map((i) => {
+            if (!action.removed_from_scope_ids.includes(i.id)) return i
+            let {fetchedKinds = []} = i
+            if (fetchedKinds.length == 0) return i // allow pushered or other items to remain if they're removed from scope, we're only interested in items that were fetched through this scope and ONLY through this scope before
+            fetchedKinds = fetchedKinds.filter((k) => k != action.cacheKind)
+            return fetchedKinds.length == 0 ? null : {...i, fetchedKinds}
+          })
+          .filter(Boolean)
+      }
+
       const newItems = action.items
       let indexItems = action.force ? newItems : utils.findAndReplace({oldItems, newItems, mapFunc: mapFetchedKinds})
+
       indexItems = _.uniqBy(indexItems, 'id')
-      let sorted = sortFunc(indexItems, action.kind).map((i) => ({
-        ...i,
-        indexed: true,
-      }))
+      let sorted = sortFunc(indexItems, action.kind)
       const delStamps = state.deletedStamps || {}
       const delKind = action.delKind || action.kind
       return {
         ...state,
         [action.kind]: sorted,
         deletedStamps: {...state.deletedStamps, [delKind]: action.deletedStamp},
+        actionVersions: {...state.actionVersions, [action.kind]: action.action_version},
       }
 
     case 'LOCAL_INDEX_RECORDS':
       let _oldItems = state[action.kind]
-      const _newItems = action.items.map((i) => ({...i, indexed: false}))
+      const _newItems = action.items.map((i) => ({...i, fetchedKinds: undefined}))
       let _indexItems = utils.findAndReplace({
         oldItems: _oldItems,
         newItems: _newItems,
@@ -78,7 +95,7 @@ export default function reduce(state = initialState, action) {
     case 'CREATE_RECORD':
       return {
         ...state,
-        [action.kind]: sortFunc([...state[action.kind], {...action.item, indexed: false}], action.kind),
+        [action.kind]: sortFunc([...state[action.kind], {...action.item, fetchedKinds: undefined}], action.kind),
       }
 
     case 'UPDATE_RECORD':
@@ -87,7 +104,7 @@ export default function reduce(state = initialState, action) {
         ...(itemz.find((i) => i.id === Number(action.item.id)) || {}),
         ...action.item,
       }
-      item.indexed = false
+      item.fetchedKinds = undefined
       return {
         ...state,
         [action.kind]: sortFunc(utils.findAndReplace({oldItems: itemz, newItems: [item]}), action.kind),
@@ -105,7 +122,7 @@ export default function reduce(state = initialState, action) {
     case 'ADD_RECORDS':
       let items = [...state[action.kind]]
       action.items.forEach((i) => {
-        i.indexed = false
+        i.fetchedKinds = undefined
         items = utils.findAndReplace(items, i)
       })
       return {
