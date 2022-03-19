@@ -362,7 +362,7 @@ export async function createMultiLocal(kind, items, {localKind} = {}) {
 }
 
 export async function createLocal(kind, params) {
-  config.store.dispatch({type: 'UPDATE_RECORD', item: {...params, indexed: false}, kind: utils.snakeToCamel(kind)})
+  config.store.dispatch({type: 'UPDATE_RECORD', item: params, kind: utils.snakeToCamel(kind)})
 }
 
 export async function updateMultiPartial(kind, params) {

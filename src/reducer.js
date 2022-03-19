@@ -68,10 +68,7 @@ export default function reduce(state = initialState, action) {
       let indexItems = action.force ? newItems : utils.findAndReplace({oldItems, newItems, mapFunc: mapFetchedKinds})
 
       indexItems = _.uniqBy(indexItems, 'id')
-      let sorted = sortFunc(indexItems, action.kind).map((i) => ({
-        ...i,
-        indexed: true,
-      }))
+      let sorted = sortFunc(indexItems, action.kind)
       const delStamps = state.deletedStamps || {}
       const delKind = action.delKind || action.kind
       return {
@@ -83,7 +80,7 @@ export default function reduce(state = initialState, action) {
 
     case 'LOCAL_INDEX_RECORDS':
       let _oldItems = state[action.kind]
-      const _newItems = action.items.map((i) => ({...i, indexed: false}))
+      const _newItems = action.items.map((i) => ({...i, fetchedKinds: undefined}))
       let _indexItems = utils.findAndReplace({
         oldItems: _oldItems,
         newItems: _newItems,
@@ -98,7 +95,7 @@ export default function reduce(state = initialState, action) {
     case 'CREATE_RECORD':
       return {
         ...state,
-        [action.kind]: sortFunc([...state[action.kind], {...action.item, indexed: false}], action.kind),
+        [action.kind]: sortFunc([...state[action.kind], {...action.item, fetchedKinds: undefined}], action.kind),
       }
 
     case 'UPDATE_RECORD':
@@ -107,7 +104,7 @@ export default function reduce(state = initialState, action) {
         ...(itemz.find((i) => i.id === Number(action.item.id)) || {}),
         ...action.item,
       }
-      item.indexed = false
+      item.fetchedKinds = undefined
       return {
         ...state,
         [action.kind]: sortFunc(utils.findAndReplace({oldItems: itemz, newItems: [item]}), action.kind),
@@ -125,7 +122,7 @@ export default function reduce(state = initialState, action) {
     case 'ADD_RECORDS':
       let items = [...state[action.kind]]
       action.items.forEach((i) => {
-        i.indexed = false
+        i.fetchedKinds = undefined
         items = utils.findAndReplace(items, i)
       })
       return {
