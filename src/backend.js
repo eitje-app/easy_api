@@ -51,9 +51,11 @@ _.mixin({
 
 const compressRequest = (data, headers) => {
   if (typeof data === 'string' && data.length > 1024) {
+    const gzipped = pako.gzip(data)
+    if (gzipped?.constructor?.name != 'Uint8Array') return data // this seems to be the Windows case, for some reason pako doesn't actually zip the data, maybe use Sentry to dig deeper?
     headers['Content-Encoding'] = 'gzip'
     headers['Content-Type'] = 'gzip/json'
-    return pako.gzip(data)
+    return gzipped
   } else {
     // delete is slow apparently, faster to set to undefined
     headers['Content-Encoding'] = undefined
