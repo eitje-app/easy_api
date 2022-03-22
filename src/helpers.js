@@ -12,20 +12,25 @@ export const getDelStamp = (kind) => {
   return state.records.deletedStamps[kind]
 }
 
+export const getActionVersion = (kind) => {
+  const state = config.store.getState()
+  return state.records.actionVersions[kind]
+}
+
 export const getStamps = (kind, localKind, extraParams, inverted, cacheKind) => {
   const customStampField = config.stampFields[kind]
   let obj = {}
   const state = config.store.getState()
-  let items = state.records[localKind]
-  if (!items || items.length === 0) return {}
-  items = filterRelevant(kind, items, extraParams, cacheKind)
+  const allItems = state.records[localKind]
+  if (!allItems || allItems.length === 0) return {}
+  let items = filterRelevant(kind, allItems, extraParams, cacheKind)
   obj['lastUpdatedStamp'] = findStamp(items, 'updated_at', inverted)
 
   if (customStampField) {
     obj['lastCreatedStamp'] = findStamp(items, customStampField, inverted)
   }
 
-  return {stamps: obj, currentItems: items}
+  return {stamps: obj, currentItems: items, allItems}
 }
 
 const findStamp = (items, field, inverted = false) => {
