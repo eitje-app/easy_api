@@ -294,6 +294,8 @@ const makeArbDefault = (config) => {
   let method = 'POST'
   let params = config
 
+  if (config.extraParams) params = {}
+
   if (config.params || config.method) {
     // this means the argument is a settings object instead of just params
     params = config.params
