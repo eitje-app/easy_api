@@ -12,6 +12,9 @@ const dbConfig = {
   user: {
     hasMany: ['userEmploymentType', 'workSchedule', 'contractHolder'],
   },
+  outreach: {
+    hasMany: ['campaigns'],
+  },
 }
 
 export const joins = ({tableName, mergeTableName, ...rest}) => {
