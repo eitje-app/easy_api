@@ -53,6 +53,8 @@ const handleRes = (res, kind, params = {}) => {
     }
 
     if (items && _.isArray(items)) {
+      if (!kind) return {ok: true}
+      items.forEach((i) => config.afterAdd(kind, i, params))
       createMultiLocal(kind, items)
       return {...res, ok: true, items}
     }
