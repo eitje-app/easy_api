@@ -18,7 +18,7 @@ const mapFetchedKinds = ({combined, old, newItem}) => {
   let fetchedKinds = newItem.fetchedKinds
 
   if (old.updated_at == newItem.updated_at) {
-    let fetchedKinds = [...(old.fetchedKinds || []), ...(newItem.fetchedKinds || [])]
+    fetchedKinds = [...(old.fetchedKinds || []), ...(newItem.fetchedKinds || [])]
   }
 
   fetchedKinds = _.uniq(fetchedKinds)
