@@ -13,7 +13,7 @@ const createApi = () => {
     baseURL: config.baseURL,
     headers: {'Content-Type': 'application/json', credentials: 'same-origin', 'Access-Control-Allow-Origin': '*'},
     paramsSerializer: serializeNestedParams,
-    transformRequest: [...axios.defaults.transformRequest, compressRequest],
+    // transformRequest: [...axios.defaults.transformRequest, compressRequest],
     ...config.apiConfig,
   })
 
