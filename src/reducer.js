@@ -44,7 +44,6 @@ export default function reduce(state = initialState, action) {
         [action.kind]: [],
         deletedStamps: {...state.deletedStamps, ...action.deletedStamps},
       }
-
     case 'INDEX_RECORDS':
       let oldItems = state[action.kind] || []
 

@@ -5,7 +5,7 @@ import _ from 'lodash'
 import pluralize from 'pluralize'
 import {getDelStamp, getActionVersion, getStamps, afterIndex} from './helpers'
 import {upload} from './files'
-
+import {sanitizeMoment} from './backend'
 const {store, indexUrls, createUrls, updateUrls, deleteUrls, afterAdd} = config
 
 const handleErrors = (data) => {
@@ -94,7 +94,8 @@ const handleLayered = (items, callback) => {
 
 const makeCacheKind = (kind, filters) => {
   if (!utils.exists(filters)) return kind
-  const sortedStringified = JSON.stringify(filters, Object.keys(filters).sort()) // we sort to ensure order of keys doesn't matter
+  const sanitizedFilters = _.deepTransformValues(filters, sanitizeMoment)
+  const sortedStringified = JSON.stringify(sanitizedFilters, Object.keys(filters).sort()) // we sort to ensure order of keys doesn't matter
   return `${kind}-${sortedStringified}`
 }
 
@@ -187,7 +188,7 @@ export async function show(kind, id, {extraParams = {}, localKind} = {}) {
 export const create = add
 export const update = add
 
-const sanitizeKind = (kind) => kind ? pluralize(utils.camelToSnake(kind)) : kind
+const sanitizeKind = (kind) => (kind ? pluralize(utils.camelToSnake(kind)) : kind)
 
 export async function destroyMutation(kind, id) {
   kind = sanitizeKind(kind)
