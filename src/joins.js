@@ -52,7 +52,7 @@ const getFieldName = (item, tableName) => {
   tableName = utils.camelToSnake(tableName)
   const singleField = `${tableName}_id`
   const multiField = `${tableName}_ids`
-  return [singleField, multiField].find((f) => item[f])
+  return [singleField, multiField].find((f) => item.hasOwnProperty(f))
 }
 
 const extendSingular = (args) => {
