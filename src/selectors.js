@@ -1,4 +1,4 @@
-import {createSelector} from 'reselect'
+import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import createCachedSelector from 're-reselect'
 import _ from 'lodash'
 import moment from 'moment'
@@ -113,13 +113,18 @@ export const includes = createCachedSelector(
   (records, key, query) => includesRecord(records, query) || [],
 )((state, key, query) => `${key}-${JSON.stringify(query)}`)
 
+const createDeepEqualSelector = createSelectorCreator(defaultMemoize, _.isEqual)
+
 export const where = createCachedSelector(
   allExternal,
   (state, key) => key,
   (state, key, query) => query,
   (state, key, query, opts) => opts || '',
-  (records, key, query, opts) => (query ? filterRecords(records, query, opts) : records) || [],
-)((state, key, query, opts) => `${key}-${JSON.stringify(query)}-${opts}`)
+  (records, key, query, opts) => {
+    console.log('running where')
+    return (query ? filterRecords(records, query, opts) : records) || []
+  },
+)({keySelector: (state, key, query, opts) => `${key}-${JSON.stringify(query)}-${opts}`, selectorCreator: createDeepEqualSelector})
 
 export const whereNot = createCachedSelector(
   allExternal,
