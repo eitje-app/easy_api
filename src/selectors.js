@@ -121,7 +121,6 @@ export const where = createCachedSelector(
   (state, key, query) => query,
   (state, key, query, opts) => opts || '',
   (records, key, query, opts) => {
-    console.log('running where')
     return (query ? filterRecords(records, query, opts) : records) || []
   },
 )({keySelector: (state, key, query, opts) => `${key}-${JSON.stringify(query)}-${opts}`, selectorCreator: createDeepEqualSelector})
