@@ -104,7 +104,7 @@ export const find = createCachedSelector(
   (state, key) => key,
   (state, key, query) => query,
   (records, key, query) => findRecord(records, query) || {},
-)((state, key, query) => `${key}-${JSON.stringify(query)}`)
+)({keySelector: (state, key, query) => `${key}-${JSON.stringify(query)}`, selectorCreator: createDeepEqualSelector})
 
 export const includes = createCachedSelector(
   allExternal,
