@@ -12,6 +12,7 @@ const sanitizeKind = (kind) => pluralize(utils.snakeToCamel(kind))
 
 const authUserSelector = (state) => state.auth.user
 const usersSelector = (state) => state.records.users
+const createDeepEqualSelector = createSelectorCreator(defaultMemoize, _.isEqual)
 
 // 217 > 101
 // ({[key]: records[key]}): 217
@@ -37,9 +38,13 @@ const findRecords = (state, kind, opts = {}) => {
   if (defaultJoins) {
     opts = {...opts, joins: utils.composeArray(opts.joins, defaultJoins)}
   }
-
   kind = sanitizeKind(kind)
-  return sanitizeOpts(opts) ? state.records : state.records[kind]
+
+  if (utils.exists(opts.joins)) {
+    return _.pick(state.records, [kind, ...opts.joins])
+  }
+
+  return state.records[kind]
 }
 
 export const all = createCachedSelector(
@@ -47,12 +52,10 @@ export const all = createCachedSelector(
   (state, key) => sanitizeKind(key),
   (state, key, opts) => sanitizeOpts(opts),
   (ents, key, opts) => _buildRecords(ents, key, opts),
-)((ents, key, opts = {}) => {
-  return `${key}-${JSON.stringify(opts)}`
-})
+)({keySelector: (state, key, opts = {}) => `${key}-${JSON.stringify(opts)}`, selectorCreator: createDeepEqualSelector})
 
 const _buildRecords = (ents, key, opts) => {
-  const records = ents && ents['deletedStamps'] ? ents : {[key]: ents} // deletedStamps is always present, tells us if we hae all ents or just a slice. This is needed for findRecords' performance
+  const records = ents && ents.hasOwnProperty(key) ? ents : {[key]: ents} // deletedStamps is always present, tells us if we hae all ents or just a slice. This is needed for findRecords' performance
   return buildRecords(records, key, opts) || []
 }
 
@@ -112,8 +115,6 @@ export const includes = createCachedSelector(
   (state, key, query) => query,
   (records, key, query) => includesRecord(records, query) || [],
 )((state, key, query) => `${key}-${JSON.stringify(query)}`)
-
-const createDeepEqualSelector = createSelectorCreator(defaultMemoize, _.isEqual)
 
 export const where = createCachedSelector(
   allExternal,
