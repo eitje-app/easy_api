@@ -59,11 +59,13 @@ const _buildRecords = (ents, key, opts) => {
   return buildRecords(records, key, opts) || []
 }
 
+const defaultArr = []
+
 const buildRecords = (ents = {}, key, opts = {}) => {
   if (!_.isObject(opts)) opts = {}
   const {model, defaultJoins} = getModel(key)
   const joinKeys = utils.composeArray(opts.joins, defaultJoins)
-  let final = enrichRecords(ents, key) || []
+  let final = enrichRecords(ents, key) || defaultArr
 
   joinKeys.forEach((k) => {
     final = joins({items: final, mergeItems: enrichRecords(ents, k), tableName: key, mergeTableName: k})
