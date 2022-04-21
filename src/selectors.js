@@ -35,6 +35,7 @@ const getModel = (key) => {
 
 const findRecords = (state, kind, opts = {}) => {
   const {model, defaultJoins} = getModel(kind)
+  if (!opts) opts = {}
   if (defaultJoins) {
     opts = {...opts, joins: utils.composeArray(opts.joins, defaultJoins)}
   }
