@@ -10,7 +10,7 @@ import {filterRecord} from './actions'
 
 export const dbConfig = {
   user: {
-    hasMany: ['userEmploymentType', 'workSchedule', 'contractHolder', 'team'],
+    hasMany: ['userEmploymentType', 'workSchedule', 'contractHolder', 'salary', 'team'],
   },
   outreaches: {
     hasMany: ['campaign'],
