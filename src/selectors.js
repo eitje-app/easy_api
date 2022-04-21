@@ -55,7 +55,7 @@ export const all = createCachedSelector(
 )({keySelector: (state, key, opts = {}) => `${key}-${JSON.stringify(opts)}`, selectorCreator: createDeepEqualSelector})
 
 const _buildRecords = (ents, key, opts) => {
-  const records = ents && ents.hasOwnProperty(key) ? ents : {[key]: ents} // deletedStamps is always present, tells us if we hae all ents or just a slice. This is needed for findRecords' performance
+  const records = ents && _.isPlainObject(ents) ? ents : {[key]: ents} // deletedStamps is always present, tells us if we hae all ents or just a slice. This is needed for findRecords' performance
   return buildRecords(records, key, opts) || []
 }
 
