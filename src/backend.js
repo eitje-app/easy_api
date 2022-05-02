@@ -131,7 +131,7 @@ const startLoad = (req) => {
 
 const endLoad = (req) => {
   const data = getDataForMonitor(req) || {}
-  if (isIndexUrl(req)) return
+  if (isIndexUrl(req) && !data['doLoad']) return
   if (data.doLoad || (req.config.method !== 'get' && !data.doNotLoad)) {
     config.store.dispatch({type: 'STOP_LOADING'})
   }
