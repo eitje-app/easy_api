@@ -118,7 +118,7 @@ const isIndexUrl = (req) => {
 const startLoad = (req) => {
   const data = getData(req)
   const isMultiPart = req.headers['Content-Type'] === 'multipart/form-data'
-  if (isIndexUrl(req)) return
+  if (isIndexUrl(req) && !data['doLoad']) return
 
   if (
     data.doLoad ||
