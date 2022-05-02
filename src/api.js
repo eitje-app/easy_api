@@ -129,12 +129,12 @@ export async function index(
 
   const finalParams = {
     new_web: true,
+    doNotLoad: true,
     ...params,
     ...stamps,
     ...condParams,
     deletedStamp,
     action_version: actionVersion,
-    doNotLoad: true,
     direction: inverted && 'older',
   }
 
