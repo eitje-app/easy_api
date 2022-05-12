@@ -68,7 +68,8 @@ const filterRanges = (queryVal, recordVal) => {
   if (isRange(queryVal) && isRange(recordVal)) return queryVal.overlaps(recordVal)
   const stringVal = args.find((a) => _.isString(a)) // dates are always sent to us as strings
   const rangeVal = args.find((a) => isRange(a))
-  return rangeVal.contains(moment(stringVal))
+  if (!rangeVal || !stringVal) return
+  return rangeVal.start.format() == stringVal || rangeVal.end.format() == stringVal
 }
 
 const sanitizeVal = (val) => {
