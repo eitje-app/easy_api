@@ -69,7 +69,13 @@ const filterRanges = (queryVal, recordVal) => {
   const stringVal = args.find((a) => _.isString(a)) // dates are always sent to us as strings
   const rangeVal = args.find((a) => isRange(a))
   if (!rangeVal || !stringVal) return
-  return rangeVal.start.format() == stringVal || rangeVal.end.format() == stringVal
+  const momentized = moment(stringVal)
+
+  if (rangeVal.isSingleDay()) {
+    return rangeVal.start.format() == stringVal || rangeVal.end.format() == stringVal
+  }
+
+  return rangeVal.contains(momentized)
 }
 
 const sanitizeVal = (val) => {
