@@ -15,6 +15,9 @@ export const dbConfig = {
   outreaches: {
     hasMany: ['campaign'],
   },
+  outreach: {
+    hasMany: ['campaigns'],
+  },
 }
 
 export const joins = ({tableName, mergeTableName, ...rest}) => {

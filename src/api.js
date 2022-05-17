@@ -53,6 +53,8 @@ const handleRes = (res, kind, params = {}) => {
     }
 
     if (items && _.isArray(items)) {
+      if (!kind) return {ok: true}
+      items.forEach((i) => config.afterAdd(kind, i, params))
       createMultiLocal(kind, items)
       return {...res, ok: true, items}
     }
@@ -128,12 +130,12 @@ export async function index(
 
   const finalParams = {
     new_web: true,
+    doNotLoad: true,
     ...params,
     ...stamps,
     ...condParams,
     deletedStamp,
     action_version: actionVersion,
-    doNotLoad: true,
     direction: inverted && 'older',
   }
 
@@ -294,6 +296,8 @@ export async function resourceReq(kind, url, config = {}) {
 const makeArbDefault = (config) => {
   let method = 'POST'
   let params = config
+
+  if (config.extraParams) params = {}
 
   if (config.params || config.method) {
     // this means the argument is a settings object instead of just params

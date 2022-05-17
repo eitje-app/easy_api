@@ -51,9 +51,11 @@ _.mixin({
 
 const compressRequest = (data, headers) => {
   if (typeof data === 'string' && data.length > 1024) {
+    const gzipped = pako.gzip(data)
+    if (gzipped?.constructor?.name != 'Uint8Array') return data // this seems to be the Windows case, for some reason pako doesn't actually zip the data, maybe use Sentry to dig deeper?
     headers['Content-Encoding'] = 'gzip'
     headers['Content-Type'] = 'gzip/json'
-    return pako.gzip(data)
+    return gzipped
   } else {
     // delete is slow apparently, faster to set to undefined
     headers['Content-Encoding'] = undefined
@@ -117,7 +119,7 @@ const isIndexUrl = (req) => {
 const startLoad = (req) => {
   const data = getData(req)
   const isMultiPart = req.headers['Content-Type'] === 'multipart/form-data'
-  if (isIndexUrl(req)) return
+  if (isIndexUrl(req) && !data['doLoad']) return
 
   if (
     data.doLoad ||
@@ -130,7 +132,7 @@ const startLoad = (req) => {
 
 const endLoad = (req) => {
   const data = getDataForMonitor(req) || {}
-  if (isIndexUrl(req)) return
+  if (isIndexUrl(req) && !data['doLoad']) return
   if (data.doLoad || (req.config.method !== 'get' && !data.doNotLoad)) {
     config.store.dispatch({type: 'STOP_LOADING'})
   }

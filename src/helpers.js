@@ -9,7 +9,12 @@ export const filterRelevant = (kind, items, extraParams = {}, cacheKind) => {
 
 export const getDelStamp = (kind) => {
   const state = config.store.getState()
-  return state.records.deletedStamps[kind]
+  return state.records.deletedStamps?.[kind]
+}
+
+export const getActionVersion = (kind) => {
+  const state = config.store.getState()
+  return state.records.actionVersions?.[kind]
 }
 
 export const getActionVersion = (kind) => {
