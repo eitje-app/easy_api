@@ -103,10 +103,9 @@ export default function reduce(state = initialState, action) {
         ...(itemz.find((i) => i.id === Number(action.item.id)) || {}),
         ...action.item,
       }
-      item.fetchedKinds = undefined
       return {
         ...state,
-        [action.kind]: sortFunc(utils.findAndReplace({oldItems: itemz, newItems: [item]}), action.kind),
+        [action.kind]: sortFunc(utils.findAndReplace({oldItems: itemz, newItems: [item], mapFunc: mapFetchedKinds}), action.kind),
       }
 
     case 'DELETE_RECORD':
