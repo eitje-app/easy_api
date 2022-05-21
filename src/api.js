@@ -182,9 +182,14 @@ export async function show(kind, id, {extraParams = {}, localKind} = {}) {
   if (res.ok && res.data && res.data.item) {
     const {item} = res.data
     const createKind = localKind || kind
-    createLocal(createKind, item)
+    createLocal(createKind, addFetchedKind(item, 'show'))
     return {ok: true, item}
   }
+}
+
+const addFetchedKind = (item, newKind) => {
+  const {fetchedKinds = []} = item
+  return {...item, fetchedKinds: [...fetchedKinds, newKind].uniq()}
 }
 
 export const create = add
