@@ -17,11 +17,6 @@ export const getActionVersion = (kind) => {
   return state.records.actionVersions?.[kind]
 }
 
-export const getActionVersion = (kind) => {
-  const state = config.store.getState()
-  return state.records.actionVersions[kind]
-}
-
 export const getStamps = (kind, localKind, extraParams, inverted, cacheKind) => {
   const customStampField = config.stampFields[kind]
   let obj = {}
