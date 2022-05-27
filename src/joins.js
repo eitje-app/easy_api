@@ -15,8 +15,8 @@ export const joins = ({tableName, mergeTableName, ...rest}) => {
   const fieldName = figureOutFieldName(args)
   if (!fieldName) return rest.items
   const isMultiple = checkMultiple(tableName, mergeTableName)
-  const mergeItemLeading = fieldName.includes(tableName)
-
+  const snakeTablename = utils.camelToSnake(tableName)
+  const mergeItemLeading = fieldName.includes(snakeTablename)
   if (isMultiple) return extendMulti({...args, mergeItemLeading, fieldName})
   return extendSingular({...args, mergeItemLeading, fieldName})
 }
