@@ -118,8 +118,8 @@ export async function index(
   } = ignoreStamp || refresh ? {} : getStamps(camelKind, createKind, params, inverted, overrideCacheKind || cacheKind)
 
   let currentIds = currentItems.map((i) => i.id)
-  const nonFetchedIds = allItems.filter((i) => !utils.exists(i.fetchedKinds)).map((i) => i.id) // we wanna include pushered and other non-fetched items to ensure they still exist
-  currentIds = [...currentIds, ...nonFetchedIds]
+  const unscopedIds = allItems.filter((i) => !utils.exists(i.fetchedKinds)).map((i) => i.id) // we wanna include pushered and other non-fetched items to ensure they still exist
+
   const deletedStamp = ignoreDelStamp || refresh ? null : getDelStamp(camelKind)
   const actionVersion = getActionVersion(camelKind)
   let condParams = {}
@@ -141,6 +141,7 @@ export async function index(
 
   if (!config.noCurrentIds) {
     finalParams['currentIds'] = currentIds
+    if (utils.exists(unscopedIds)) finalParams['unscopedIds'] = unscopedIds
   }
 
   const res = await backend.post(url, finalParams)
