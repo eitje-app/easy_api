@@ -285,12 +285,12 @@ export async function resourceReq(kind, url, config = {}) {
   let {params, method} = makeArbDefault(config)
   const backendKind = sanitizeKind(kind)
   const isCreate = !params['id']
-
+  const defaultMethod = isCreate ? 'post' : 'put'
+  if (!method) method = defaultMethod
   const fullUrl = isCreate ? `${backendKind}/${url}` : `${backendKind}/${params['id']}/${url}`
   const resourceParams = getParams(kind, params)
-  const meth = isCreate ? backend.post : backend.put
 
-  const res = await meth(fullUrl, resourceParams)
+  const res = await backend[method](fullUrl, resourceParams)
   return handleRes(res, kind, params)
 }
 

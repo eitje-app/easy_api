@@ -1,6 +1,6 @@
 {
   "name": "@eitje/easy_api",
-  "version": "3.0.1-eitje",
+  "version": "3.0.3-eitje",
   "description": "Easy communcation between a modern front-end application & a RESTful API",
   "main": "index.js",
   "scripts": {
