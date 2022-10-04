@@ -139,7 +139,7 @@ export async function index(
     direction: inverted && 'older',
   }
 
-  if (!config.noCurrentIds) {
+  if (!config.noCurrentIds && !localForce) {
     finalParams['currentIds'] = currentIds
     if (utils.exists(unscopedIds)) finalParams['unscopedIds'] = unscopedIds
   }
