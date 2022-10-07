@@ -282,11 +282,13 @@ export async function request(url, config = {}) {
 }
 
 export async function resourceReq(kind, url, config = {}) {
-  let {params, method} = makeArbDefault(config)
+  let {params, method} = makeArbDefault(config, {defaultMethod: 'put'})
+
   const backendKind = sanitizeKind(kind)
   const isCreate = !params['id']
   const defaultMethod = isCreate ? 'post' : 'put'
   if (!method) method = defaultMethod
+  method = method.toLowerCase()
   const fullUrl = isCreate ? `${backendKind}/${url}` : `${backendKind}/${params['id']}/${url}`
   const resourceParams = getParams(kind, params)
 
@@ -294,8 +296,8 @@ export async function resourceReq(kind, url, config = {}) {
   return handleRes(res, kind, params)
 }
 
-const makeArbDefault = (config) => {
-  let method = 'POST'
+const makeArbDefault = (config, {defaultMethod = 'post'} = {}) => {
+  let method = defaultMethod
   let params = config
 
   if (config.extraParams) params = {}
