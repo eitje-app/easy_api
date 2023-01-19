@@ -29,7 +29,7 @@ export async function add(kind, params, {localKind, url = '', extraParams = {}, 
   return handleRes(res, localKind || kind, params)
 }
 
-const handleRes = (res, kind, params = {}) => {
+export const handleRes = (res, kind, params = {}) => {
   if (res.ok && res.data) {
     const {item, items, destroyed_ids} = res.data
 
@@ -171,6 +171,11 @@ export async function index(
   } else {
   }
   return res
+}
+
+export async function multiDestroy(kind, ids, {extraParams = {}} = {}) {
+  const res = await backend.post(`${kind}/multi_destroy`, {ids, ...extraParams})
+  return handleRes(res, kind)
 }
 
 export async function updateMulti(kind, params, {localKind, extraParams, saveLocal = true} = {}) {
