@@ -5,7 +5,6 @@ import utils from '@eitje/utils'
 import _ from 'lodash'
 import Qs from 'qs'
 import moment from 'moment'
-import pako from 'pako'
 
 let api
 const createApi = () => {
@@ -13,7 +12,6 @@ const createApi = () => {
     baseURL: config.baseURL,
     headers: {'Content-Type': 'application/json', credentials: 'same-origin', 'Access-Control-Allow-Origin': '*'},
     paramsSerializer: serializeNestedParams,
-    // transformRequest: [...axios.defaults.transformRequest, compressRequest],
     ...config.apiConfig,
   })
 
@@ -48,20 +46,6 @@ _.mixin({
 })
 
 // MOVE ^ TO EITJE-CORE
-
-const compressRequest = (data, headers) => {
-  if (typeof data === 'string' && data.length > 1024) {
-    const gzipped = pako.gzip(data)
-    if (gzipped?.constructor?.name != 'Uint8Array') return data // this seems to be the Windows case, for some reason pako doesn't actually zip the data, maybe use Sentry to dig deeper?
-    headers['Content-Encoding'] = 'gzip'
-    headers['Content-Type'] = 'gzip/json'
-    return gzipped
-  } else {
-    // delete is slow apparently, faster to set to undefined
-    headers['Content-Encoding'] = undefined
-    return data
-  }
-}
 
 export const sanitizeMoment = (v) => (v instanceof moment ? v.format('YYYY-MM-DD') : v)
 
