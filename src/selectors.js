@@ -16,7 +16,7 @@ import {
 } from "./actions";
 import { config } from "./config";
 import pluralize from "pluralize";
-import joins, { checkMultiple } from "./joins";
+import joins, { checkMultiple, joinsThrough } from "./joins";
 
 const sanitizeKind = (kind) => pluralize(utils.snakeToCamel(kind));
 
@@ -46,8 +46,11 @@ const getModel = (key) => {
   return { model, defaultJoins: model?.defaultJoins };
 };
 
+const flattenJoins = (joins) =>
+  joins.map((i) => (_.isObject(i) ? Object.entries(i).flat() : i)).flat();
+
 const findRecords = (state, kind, opts = {}) => {
-  const { model, defaultJoins } = getModel(kind);
+  const { defaultJoins } = getModel(kind);
   if (!opts) opts = {};
   if (defaultJoins) {
     opts = { ...opts, joins: utils.composeArray(opts.joins, defaultJoins) };
@@ -55,7 +58,8 @@ const findRecords = (state, kind, opts = {}) => {
   kind = sanitizeKind(kind);
 
   if (utils.exists(opts.joins)) {
-    return _.pick(state.records, [kind, ...opts.joins]);
+    const joins = flattenJoins(opts.joins);
+    return _.pick(state.records, [kind, ...joins]);
   }
 
   return state.records[kind];
@@ -80,39 +84,70 @@ const defaultArr = [];
 
 const buildRecords = (ents = {}, key, opts = {}) => {
   if (!_.isObject(opts)) opts = {};
-  const { model, defaultJoins } = getModel(key);
+  const { defaultJoins } = getModel(key);
   const joinKeys = utils.composeArray(opts.joins, defaultJoins);
   let final = enrichRecords(ents, key) || defaultArr;
 
   joinKeys.forEach((k) => {
-    final = joins({
-      items: final,
-      mergeItems: enrichRecords(ents, k),
-      tableName: key,
-      mergeTableName: k,
-    });
+    if (typeof k === "object") {
+      const _joins = Object.entries(k)[0];
+      final = joinsThrough({
+        items: final,
+        mergeItems: enrichRecords(ents, _joins[0]),
+        nestedMergeItems: enrichRecords(ents, _joins[1]),
+        tableName: key,
+        mergeTableName: _joins[0],
+        nestedMergeTableName: _joins[1],
+      });
+    } else {
+      final = joins({
+        items: final,
+        mergeItems: enrichRecords(ents, k),
+        tableName: key,
+        mergeTableName: k,
+      });
+    }
   });
+
   return config.createAssociation(
     final.map((i) => buildFullRecord(i, key, joinKeys))
   );
 };
 
+const handleBuild = ({ isMultiple, joinKey, record }) => {
+  const actualJoinKey = isMultiple
+    ? pluralize.plural(joinKey)
+    : pluralize.singular(joinKey);
+  if (record[actualJoinKey]) {
+    record[actualJoinKey] = isMultiple
+      ? config.createAssociation(
+          record[actualJoinKey].map((i) => buildClassRecord(i, actualJoinKey))
+        )
+      : buildClassRecord(record[actualJoinKey], actualJoinKey);
+  }
+};
+
 const buildFullRecord = (item, key, joinKeys) => {
   const record = buildClassRecord(item, key);
   joinKeys.forEach((joinKey) => {
-    const isMultiple = checkMultiple(key, joinKey);
-    const actualJoinKey = isMultiple
-      ? pluralize.plural(joinKey)
-      : pluralize.singular(joinKey);
-    if (record[actualJoinKey]) {
-      record[actualJoinKey] = isMultiple
-        ? config.createAssociation(
-            record[actualJoinKey].map((i) => buildClassRecord(i, actualJoinKey))
-          )
-        : buildClassRecord(record[actualJoinKey], actualJoinKey);
+    if (typeof joinKey === "object") {
+      // join
+      const _joins = Object.entries(joinKey)[0];
+      const isMultiple = checkMultiple(key, _joins[0]);
+      handleBuild({ isMultiple, joinKey: _joins[0], record });
+      // join through
+      const isMultipleThrough = checkMultiple(_joins[0], _joins[1]);
+      handleBuild({
+        isMultiple: isMultipleThrough,
+        joinKey: _joins[1],
+        record,
+      });
+    } else {
+      const isMultiple = checkMultiple(key, joinKey);
+      handleBuild({ isMultiple, joinKey, record });
     }
   });
-
+  key === "teams" && console.log(record);
   return record;
 };
 

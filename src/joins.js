@@ -1,15 +1,5 @@
-import { createSelector } from "reselect";
-import createCachedSelector from "re-reselect";
 import _ from "lodash";
-import moment from "moment";
 import utils from "@eitje/utils";
-import {
-  findRecord,
-  inverseFilterRecords,
-  filterRecords,
-  includesRecord,
-  filterByDate,
-} from "./actions";
 import { config } from "./config";
 import pluralize from "pluralize";
 import { filterRecord } from "./actions";
@@ -25,6 +15,42 @@ export const joins = ({ tableName, mergeTableName, ...rest }) => {
   const mergeItemLeading = fieldName.includes(snakeTablename);
   if (isMultiple) return extendMulti({ ...args, mergeItemLeading, fieldName });
   return extendSingular({ ...args, mergeItemLeading, fieldName });
+};
+
+export const joinsThrough = (args) => {
+  const {
+    mergeItems,
+    nestedMergeItems,
+    mergeTableName: _mergeTableName,
+    nestedMergeTableName,
+  } = args;
+  const joinedItems = joins(args);
+
+  const tableName = pluralize.singular(_mergeTableName);
+  const mergeTableName = pluralize.singular(nestedMergeTableName);
+
+  const fieldName = figureOutFieldName({
+    items: mergeItems,
+    mergeItems: nestedMergeItems,
+    tableName,
+    mergeTableName,
+  });
+  if (!fieldName) return joinedItems;
+  const isMultiple = checkMultiple(tableName, mergeTableName);
+  const snakeTablename = utils.camelToSnake(tableName);
+  const mergeItemLeading = fieldName.includes(snakeTablename);
+  const extendParams = {
+    items: joinedItems,
+    tableName,
+    mergeTableName,
+    mergeItems,
+    nestedMergeItems,
+    mergeItemLeading,
+    fieldName,
+  };
+
+  if (isMultiple) return extendMultiThrough(extendParams);
+  return extendSingularThrough(extendParams);
 };
 
 export const checkMultiple = (tableName, joinTableName) => {
@@ -46,6 +72,7 @@ const figureOutFieldName = ({
   let fieldName;
   const sample = items[0];
   const mergeSample = mergeItems[0];
+
   if (!sample || !mergeSample) return null;
   fieldName = getFieldName(sample, mergeTableName);
   if (fieldName) return fieldName;
@@ -60,7 +87,7 @@ const getFieldName = (item, tableName) => {
 };
 
 const extendSingular = (args) => {
-  const { items, mergeTableName, mergeItems, mergeItemLeading, spread } = args;
+  const { items, mergeTableName, mergeItems, spread } = args;
   return items.map((i) => {
     const relevantItem = mergeItems.find((i2) => findItem(i, i2, args));
     const toAdd = spread ? relevantItem : { [mergeTableName]: relevantItem };
@@ -68,19 +95,52 @@ const extendSingular = (args) => {
   });
 };
 
-const findItem = (i, i2, { mergeItemLeading, fieldName }) => {
-  const record = mergeItemLeading ? i2 : i;
-  const otherRecord = mergeItemLeading ? i : i2;
-  return filterRecord(otherRecord.id, record[fieldName]); // dit moet beter kunnen, eig filter je altijd mergeItems, alleen soms met query {id: 33} als !mergeItemLeading en anders {user_id: 33}
+const extendSingularThrough = (args) => {
+  const { items, mergeTableName, nestedMergeItems, tableName, spread } = args;
+  return items.map((i) => {
+    const mergedItem = i[tableName];
+    const relevantItem = nestedMergeItems.find((i2) =>
+      findItem(mergedItem, i2, args)
+    );
+    const toAdd = spread ? relevantItem : { [mergeTableName]: relevantItem };
+    return { ...i, ...toAdd };
+  });
 };
 
 const extendMulti = (args) => {
-  const { items, mergeItemLeading, mergeTableName, mergeItems } = args;
+  const { items, mergeTableName, mergeItems } = args;
   const pluralName = pluralize.plural(mergeTableName);
   return items.map((i) => {
     const relevantItems = mergeItems.filter((i2) => findItem(i, i2, args));
     return { ...i, [pluralName]: relevantItems };
   });
+};
+
+const extendMultiThrough = (args) => {
+  const { items, mergeTableName, nestedMergeItems, tableName } = args;
+  const pluralTableName = pluralize.plural(tableName);
+  const pluralName = pluralize.plural(mergeTableName);
+
+  return items.map((i) => {
+    const mergedItem = i[pluralTableName];
+    const relevantItems = nestedMergeItems.filter((i2) =>
+      findItem(mergedItem, i2, args, true)
+    );
+    return { ...i, [pluralName]: relevantItems };
+  });
+};
+
+const findItem = (i, i2, { mergeItemLeading, fieldName }) => {
+  const record = mergeItemLeading ? i2 : i;
+  const otherRecord = mergeItemLeading ? i : i2;
+  let recordField = record[fieldName];
+
+  if (Array.isArray(record)) {
+    const records = record.map((f) => f[fieldName]);
+    recordField = [...new Set(records)].flat();
+  }
+
+  return filterRecord(otherRecord.id, recordField); // dit moet beter kunnen, eig filter je altijd mergeItems, alleen soms met query {id: 33} als !mergeItemLeading en anders {user_id: 33}
 };
 
 export default joins;
