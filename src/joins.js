@@ -18,33 +18,28 @@ export const joins = ({ tableName, mergeTableName, ...rest }) => {
 };
 
 export const joinsThrough = (args) => {
-  const {
-    mergeItems,
-    nestedMergeItems,
-    mergeTableName: _mergeTableName,
-    nestedMergeTableName,
-  } = args;
+  let { mergeItems, nestedMergeItems, mergeTableName, nestedMergeTableName } =
+    args;
   const joinedItems = joins(args);
 
-  const tableName = pluralize.singular(_mergeTableName);
-  const mergeTableName = pluralize.singular(nestedMergeTableName);
+  mergeTableName = pluralize.singular(mergeTableName);
+  nestedMergeTableName = pluralize.singular(nestedMergeTableName);
 
   const fieldName = figureOutFieldName({
     items: mergeItems,
     mergeItems: nestedMergeItems,
-    tableName,
-    mergeTableName,
+    tableName: mergeTableName,
+    mergeTableName: nestedMergeTableName,
   });
   if (!fieldName) return joinedItems;
-  const isMultiple = checkMultiple(tableName, mergeTableName);
-  const snakeTablename = utils.camelToSnake(tableName);
+  const isMultiple = checkMultiple(mergeTableName, nestedMergeTableName);
+  const snakeTablename = utils.camelToSnake(mergeTableName);
   const mergeItemLeading = fieldName.includes(snakeTablename);
   const extendParams = {
     items: joinedItems,
-    tableName,
-    mergeTableName,
-    mergeItems,
-    nestedMergeItems,
+    tableName: mergeTableName,
+    mergeTableName: nestedMergeTableName,
+    mergeItems: nestedMergeItems,
     mergeItemLeading,
     fieldName,
   };
@@ -88,59 +83,71 @@ const getFieldName = (item, tableName) => {
 
 const extendSingular = (args) => {
   const { items, mergeTableName, mergeItems, spread } = args;
-  return items.map((i) => {
-    const relevantItem = mergeItems.find((i2) => findItem(i, i2, args));
-    const toAdd = spread ? relevantItem : { [mergeTableName]: relevantItem };
-    return { ...i, ...toAdd };
-  });
-};
-
-const extendSingularThrough = (args) => {
-  const { items, mergeTableName, nestedMergeItems, tableName, spread } = args;
-  return items.map((i) => {
-    const mergedItem = i[tableName];
-    const relevantItem = nestedMergeItems.find((i2) =>
-      findItem(mergedItem, i2, args)
+  return items.map((item) => {
+    const relevantItem = mergeItems.find((mergeItem) =>
+      findItem(item, mergeItem, args)
     );
     const toAdd = spread ? relevantItem : { [mergeTableName]: relevantItem };
-    return { ...i, ...toAdd };
+    return { ...item, ...toAdd };
   });
 };
 
 const extendMulti = (args) => {
-  const { items, mergeTableName, mergeItems } = args;
-  const pluralName = pluralize.plural(mergeTableName);
+  let { items, mergeTableName, mergeItems } = args;
+  mergeTableName = pluralize.plural(mergeTableName);
+  return items.map((item) => {
+    const relevantItems = mergeItems.filter((mergeItem) =>
+      findItem(item, mergeItem, args)
+    );
+    return { ...item, [mergeTableName]: relevantItems };
+  });
+};
+
+const findItem = (item, mergeItem, { mergeItemLeading, fieldName }) => {
+  const record = mergeItemLeading ? mergeItem : item;
+  const otherRecord = mergeItemLeading ? item : mergeItem;
+  let recordField = record[fieldName];
+
+  return filterRecord(otherRecord.id, recordField);
+};
+
+const extendSingularThrough = (args) => {
+  const { items, mergeTableName, mergeItems, tableName, spread } = args;
   return items.map((i) => {
-    const relevantItems = mergeItems.filter((i2) => findItem(i, i2, args));
-    return { ...i, [pluralName]: relevantItems };
+    const item = i[tableName];
+    const relevantItem = mergeItems.find((mergeItem) =>
+      findItem(item, mergeItem, args)
+    );
+    const toAdd = spread ? relevantItem : { [mergeTableName]: relevantItem };
+    return { ...i, ...toAdd };
   });
 };
 
 const extendMultiThrough = (args) => {
-  const { items, mergeTableName, nestedMergeItems, tableName } = args;
-  const pluralTableName = pluralize.plural(tableName);
-  const pluralName = pluralize.plural(mergeTableName);
+  let { items, mergeTableName, mergeItems, tableName } = args;
+  tableName = pluralize.plural(tableName);
+  mergeTableName = pluralize.plural(mergeTableName);
 
   return items.map((i) => {
-    const mergedItem = i[pluralTableName];
-    const relevantItems = nestedMergeItems.filter((i2) =>
-      findItem(mergedItem, i2, args, true)
+    const item = i[tableName];
+    const relevantItems = mergeItems.filter((mergeItem) =>
+      findItemThrough(item, mergeItem, args, true)
     );
-    return { ...i, [pluralName]: relevantItems };
+    return { ...i, [mergeTableName]: relevantItems };
   });
 };
 
-const findItem = (i, i2, { mergeItemLeading, fieldName }) => {
-  const record = mergeItemLeading ? i2 : i;
-  const otherRecord = mergeItemLeading ? i : i2;
+const findItemThrough = (item, mergeItem, { mergeItemLeading, fieldName }) => {
+  const record = mergeItemLeading ? mergeItem : item;
+  const otherRecord = mergeItemLeading ? item : mergeItem;
   let recordField = record[fieldName];
 
   if (Array.isArray(record)) {
     const records = record.map((f) => f[fieldName]);
-    recordField = [...new Set(records)].flat();
+    recordField = _.uniq(records.flat());
   }
 
-  return filterRecord(otherRecord.id, recordField); // dit moet beter kunnen, eig filter je altijd mergeItems, alleen soms met query {id: 33} als !mergeItemLeading en anders {user_id: 33}
+  return filterRecord(otherRecord.id, recordField);
 };
 
 export default joins;
