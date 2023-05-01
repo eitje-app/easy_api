@@ -146,7 +146,6 @@ const buildFullRecord = (item, key, joinKeys) => {
       handleBuild({ isMultiple, joinKey, record });
     }
   });
-  key === "teams" && console.log(record);
   return record;
 };
 

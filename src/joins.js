@@ -18,8 +18,13 @@ export const joins = ({ tableName, mergeTableName, ...rest }) => {
 };
 
 export const joinsThrough = (args) => {
-  let { mergeItems, nestedMergeItems, mergeTableName, nestedMergeTableName } =
-    args;
+  let {
+    tableName,
+    mergeItems,
+    nestedMergeItems,
+    mergeTableName,
+    nestedMergeTableName,
+  } = args;
   const joinedItems = joins(args);
 
   mergeTableName = pluralize.singular(mergeTableName);
@@ -32,18 +37,20 @@ export const joinsThrough = (args) => {
     mergeTableName: nestedMergeTableName,
   });
   if (!fieldName) return joinedItems;
+  const isBaseMultiple = checkMultiple(tableName, mergeTableName);
   const isMultiple = checkMultiple(mergeTableName, nestedMergeTableName);
   const snakeTablename = utils.camelToSnake(mergeTableName);
   const mergeItemLeading = fieldName.includes(snakeTablename);
+
   const extendParams = {
     items: joinedItems,
     tableName: mergeTableName,
     mergeTableName: nestedMergeTableName,
     mergeItems: nestedMergeItems,
+    isBaseMultiple,
     mergeItemLeading,
     fieldName,
   };
-
   if (isMultiple) return extendMultiThrough(extendParams);
   return extendSingularThrough(extendParams);
 };
@@ -112,11 +119,11 @@ const findItem = (item, mergeItem, { mergeItemLeading, fieldName }) => {
 };
 
 const extendSingularThrough = (args) => {
-  const { items, mergeTableName, mergeItems, tableName, spread } = args;
+  const { items, mergeTableName, tableName, mergeItems, spread } = args;
   return items.map((i) => {
     const item = i[tableName];
     const relevantItem = mergeItems.find((mergeItem) =>
-      findItem(item, mergeItem, args)
+      findItemThrough(item, mergeItem, args)
     );
     const toAdd = spread ? relevantItem : { [mergeTableName]: relevantItem };
     return { ...i, ...toAdd };
@@ -124,14 +131,14 @@ const extendSingularThrough = (args) => {
 };
 
 const extendMultiThrough = (args) => {
-  let { items, mergeTableName, mergeItems, tableName } = args;
-  tableName = pluralize.plural(tableName);
+  let { items, mergeTableName, mergeItems, tableName, isBaseMultiple } = args;
+  tableName = isBaseMultiple ? pluralize.plural(tableName) : tableName;
   mergeTableName = pluralize.plural(mergeTableName);
 
   return items.map((i) => {
     const item = i[tableName];
     const relevantItems = mergeItems.filter((mergeItem) =>
-      findItemThrough(item, mergeItem, args, true)
+      findItemThrough(item, mergeItem, args)
     );
     return { ...i, [mergeTableName]: relevantItems };
   });
@@ -140,14 +147,19 @@ const extendMultiThrough = (args) => {
 const findItemThrough = (item, mergeItem, { mergeItemLeading, fieldName }) => {
   const record = mergeItemLeading ? mergeItem : item;
   const otherRecord = mergeItemLeading ? item : mergeItem;
-  let recordField = record[fieldName];
 
-  if (Array.isArray(record)) {
+  let recordField = record[fieldName];
+  let otherField = otherRecord.id;
+
+  if (Array.isArray(record) && !mergeItemLeading) {
     const records = record.map((f) => f[fieldName]);
     recordField = _.uniq(records.flat());
   }
-
-  return filterRecord(otherRecord.id, recordField);
+  if (Array.isArray(otherRecord) && mergeItemLeading) {
+    const records = otherRecord.map((f) => f.id);
+    otherField = _.uniq(records.flat());
+  }
+  return filterRecord(otherField, recordField, {}, true);
 };
 
 export default joins;
