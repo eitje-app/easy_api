@@ -115,15 +115,14 @@ const buildRecords = (ents = {}, key, opts = {}) => {
 };
 
 const handleBuild = ({ isMultiple, joinKey, record }) => {
-  const actualJoinKey = isMultiple
-    ? pluralize.plural(joinKey)
-    : pluralize.singular(joinKey);
-  if (record[actualJoinKey]) {
-    record[actualJoinKey] = isMultiple
+  const fn = isMultiple ? "plural" : "singular";
+  joinKey = pluralize[fn](joinKey);
+  if (record[joinKey]) {
+    record[joinKey] = isMultiple
       ? config.createAssociation(
-          record[actualJoinKey].map((i) => buildClassRecord(i, actualJoinKey))
+          record[joinKey].map((i) => buildClassRecord(i, joinKey))
         )
-      : buildClassRecord(record[actualJoinKey], actualJoinKey);
+      : buildClassRecord(record[joinKey], joinKey);
   }
 };
 
@@ -132,14 +131,14 @@ const buildFullRecord = (item, key, joinKeys) => {
   joinKeys.forEach((joinKey) => {
     if (typeof joinKey === "object") {
       // join
-      const _joins = Object.entries(joinKey)[0];
-      const isMultiple = checkMultiple(key, _joins[0]);
-      handleBuild({ isMultiple, joinKey: _joins[0], record });
+      const [_key, value] = Object.entries(joinKey)[0];
+      const isMultiple = checkMultiple(key, _key);
+      handleBuild({ isMultiple, joinKey: _key, record });
       // join through
-      const isMultipleThrough = checkMultiple(_joins[0], _joins[1]);
+      const isMultipleThrough = checkMultiple(_key, value);
       handleBuild({
         isMultiple: isMultipleThrough,
-        joinKey: _joins[1],
+        joinKey: _key,
         record,
       });
     } else {
