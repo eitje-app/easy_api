@@ -90,14 +90,14 @@ const buildRecords = (ents = {}, key, opts = {}) => {
 
   joinKeys.forEach((k) => {
     if (typeof k === "object") {
-      const [_key, value] = Object.entries(k)[0];
+      const [mergeTableName, nestedMergeTableName] = Object.entries(k)[0];
       final = joinsThrough({
         items: final,
-        mergeItems: enrichRecords(ents, _key),
-        nestedMergeItems: enrichRecords(ents, value),
+        mergeItems: enrichRecords(ents, mergeTableName),
+        nestedMergeItems: enrichRecords(ents, nestedMergeTableName),
         tableName: key,
-        mergeTableName: _key,
-        nestedMergeTableName: value,
+        mergeTableName: mergeTableName,
+        nestedMergeTableName: nestedMergeTableName,
       });
     } else {
       final = joins({
