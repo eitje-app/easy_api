@@ -160,7 +160,8 @@ function handleErrors(res) {
   }
 
   if (res.status === 403) {
-    alert(t('oops'), t('unauthorized'))
+    const msg = res?.data?.message || t('unauthorized')
+    alert(t('oops'), msg)
     return
   }
 
