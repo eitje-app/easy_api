@@ -29,24 +29,6 @@ const createApi = () => {
   return api
 }
 
-_.mixin({
-  deeply: function (map) {
-    return function (obj, fn) {
-      return map(
-        _.mapValues(obj, function (v) {
-          return _.isPlainObject(v) ? _.deeply(map)(v, fn) : v
-        }),
-        fn,
-      )
-    }
-  },
-  deepTransformValues: (obj, mapper) => {
-    return _.deeply(_.mapValues)(obj, mapper)
-  },
-})
-
-// MOVE ^ TO EITJE-CORE
-
 export const sanitizeMoment = (v) => (v instanceof moment ? v.format('YYYY-MM-DD') : v)
 
 const sanitizeParams = (request) => {
@@ -58,9 +40,20 @@ const sanitizeParams = (request) => {
   request.data = _sanitizeParams(request.data)
 }
 
+function deepTransformValues(obj, mapper) {
+  for (let key in obj) {
+    if (typeof obj[key] === 'object' && obj[key] !== null) {
+      obj[key] = moment.isMoment(obj[key]) ? mapper(obj[key]) : deepTransformValues(obj[key], mapper)
+    } else {
+      obj[key] = mapper(obj[key])
+    }
+  }
+  return obj
+}
+
 const _sanitizeParams = (obj) => {
   if (!obj) return
-  return _.deepTransformValues(obj, sanitizeMoment)
+  return deepTransformValues(obj, sanitizeMoment)
 }
 
 const serializeNestedParams = (params) => Qs.stringify(params, {arrayFormat: 'brackets'})
