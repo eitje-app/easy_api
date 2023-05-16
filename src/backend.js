@@ -40,7 +40,7 @@ const sanitizeParams = (request) => {
   request.data = _sanitizeParams(request.data)
 }
 
-function deepTransformValues(obj, mapper) {
+export function deepTransformValues(obj, mapper) {
   for (let key in obj) {
     if (typeof obj[key] === 'object' && obj[key] !== null) {
       obj[key] = moment.isMoment(obj[key]) ? mapper(obj[key]) : deepTransformValues(obj[key], mapper)

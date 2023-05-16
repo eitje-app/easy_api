@@ -5,7 +5,7 @@ import _ from 'lodash'
 import pluralize from 'pluralize'
 import {getDelStamp, getActionVersion, getStamps, afterIndex} from './helpers'
 import {upload} from './files'
-import {sanitizeMoment} from './backend'
+import {sanitizeMoment, deepTransformValues} from './backend'
 const {store, indexUrls, createUrls, updateUrls, deleteUrls, afterAdd} = config
 
 const handleErrors = (data) => {
@@ -96,7 +96,7 @@ const handleLayered = (items, callback) => {
 
 const makeCacheKind = (kind, filters) => {
   if (!utils.exists(filters)) return kind
-  const sanitizedFilters = _.deepTransformValues(filters, sanitizeMoment)
+  const sanitizedFilters = deepTransformValues(filters, sanitizeMoment)
   const sortedStringified = JSON.stringify(sanitizedFilters, Object.keys(filters).sort()) // we sort to ensure order of keys doesn't matter
   return `${kind}-${sortedStringified}`
 }
