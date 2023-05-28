@@ -56,6 +56,7 @@ export const all = createCachedSelector(
 )({keySelector: (state, key, opts = {}) => `${key}-${JSON.stringify(opts)}`, selectorCreator: createDeepEqualSelector})
 
 const _buildRecords = (ents, key, opts) => {
+  console.log(`building ${key}, with opts: ${JSON.stringify(opts)}, ent length: ${ents?.length}`)
   const records = ents && _.isPlainObject(ents) ? ents : {[key]: ents} // deletedStamps is always present, tells us if we hae all ents or just a slice. This is needed for findRecords' performance
   return buildRecords(records, key, opts) || []
 }
@@ -97,7 +98,7 @@ const buildClassRecord = (item, key) => {
 
 const enrichRecords = (ents, key) => config.enrichRecords(ents, key) || ents[key]
 
-const allExternal = (state, key, query, opts) => (opts ? all(state, key, opts) : all(state, key))
+const allExternal = (state, key, query, opts) => (utils.exists(opts) ? all(state, key, opts) : all(state, key))
 
 export const selfSelector = createSelector(
   authUserSelector,
@@ -125,6 +126,8 @@ export const where = createCachedSelector(
   (state, key, query) => query,
   (state, key, query, opts) => opts || '',
   (records, key, query, opts) => {
+    console.log(`running where. Model: ${key}, query: ${JSON.stringify(query)}, opts: ${JSON.stringify(opts)}`)
+
     return (query ? filterRecords(records, query, opts) : records) || []
   },
 )({keySelector: (state, key, query, opts) => `${key}-${JSON.stringify(query)}-${opts}`, selectorCreator: createDeepEqualSelector})
