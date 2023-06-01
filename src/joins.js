@@ -52,65 +52,60 @@ const getFieldName = (item, tableName) => {
   return [singleField, multiField].find((f) => item.hasOwnProperty(f))
 }
 
-const extendSingular = (args) => {
-  const {items, mergeTableName, fieldName, mergeItems, mergeItemLeading, spread} = args
-  return items.map((i) => {
-    const relevantItem = mergeItems.find((i2) => findItem(i, i2, args))
+const extendSingular = ({items, mergeTableName, mergeItems, mergeItemLeading, spread, fieldName}) => {
+  // {team_id: env, team_id: env}
+  const mergeItemsIndex = mergeItems.reduce((index, item) => {
+    index[item.id] = item
+    return index
+  }, {})
+
+  const res = items.map((item) => {
+    const relevantItem = mergeItemsIndex[item[fieldName]]
     const toAdd = spread ? relevantItem : {[mergeTableName]: relevantItem}
-    return {...i, ...toAdd}
+    return {...item, ...toAdd}
   })
-}
-
-// const extendSingular = ({items, mergeTableName, mergeItems, mergeItemLeading, spread, fieldName}) => {
-//   const map = {}
-
-//   if (mergeItemLeading) {
-//     mergeItems.forEach((mergeItem) => {
-//       if (Array.isArray(mergeItem[fieldName])) {
-//         mergeItem[fieldName].forEach((id) => {
-//           if (!map[id]) {
-//             map[id] = mergeItem
-//           }
-//         })
-//       } else if (!map[mergeItem[fieldName]]) {
-//         map[mergeItem[fieldName]] = mergeItem
-//       }
-//     })
-//   } else {
-//     items.forEach((item) => {
-//       if (!map[item[fieldName]]) {
-//         map[item[fieldName]] = item
-//       }
-//     })
-//   }
-
-//   const res = items.map((item) => {
-//     const relevantItem = map[item.id]
-//     const toAdd = spread ? relevantItem : {[mergeTableName]: relevantItem}
-//     return {...item, ...toAdd}
-//   })
-//   debugger
-//   return res
-// }
-
-// window.findItemSecs = 0
-window.findItemCalls = 0
-
-const findItem = (i, i2, {mergeItemLeading, fieldName}) => {
-  // const startTime = performance.now()
-  window.findItemCalls += 1
-  const record = mergeItemLeading ? i2 : i
-  const otherRecord = mergeItemLeading ? i : i2
-  const res = filterRecord(otherRecord.id, record[fieldName]) // dit moet beter kunnen, eig filter je altijd mergeItems, alleen soms met query {id: 33} als !mergeItemLeading en anders {user_id: 33}
-  // window.findItemSecs += secsElapsed(startTime)
   return res
 }
 
 const extendMulti = (args) => {
-  const {items, mergeItemLeading, mergeTableName, mergeItems} = args
+  const {items, mergeItemLeading, fieldName, mergeTableName, mergeItems} = args
+  const res = mergeItemLeading ? extendMultiMergeLeading(args) : extendMultiMainLeading(args)
+  return res
+}
+
+const extendMultiMainLeading = ({items, mergeItemLeading, fieldName, mergeTableName, mergeItems}) => {
+  const mergeItemsIndex = mergeItems.reduce((index, item) => {
+    index[item.id] = item
+    return index
+  }, {})
+
   const pluralName = pluralize.plural(mergeTableName)
   return items.map((i) => {
-    const relevantItems = mergeItems.filter((i2) => findItem(i, i2, args))
+    const relevantItems = i[fieldName].map((i2) => mergeItemsIndex[i2])
+    return {...i, [pluralName]: relevantItems}
+  })
+}
+
+const extendMultiMergeLeading = ({items, fieldName, mergeItemLeading, mergeTableName, mergeItems}) => {
+  const isMultiple = fieldName.endsWith('s')
+  const mergeItemsIndex = mergeItems.reduce((index, item) => {
+    const val = item[fieldName]
+    if (isMultiple) {
+      val.forEach((i) => {
+        if (!index[i]) index[i] = []
+        index[i].push(item)
+      })
+    } else {
+      if (!index[val]) index[val] = []
+      index[val].push(item)
+    }
+    return index
+  }, {})
+
+  const pluralName = pluralize.plural(mergeTableName)
+
+  return items.map((i) => {
+    const relevantItems = mergeItemsIndex[i.id] || []
     return {...i, [pluralName]: relevantItems}
   })
 }
