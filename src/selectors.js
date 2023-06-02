@@ -22,10 +22,6 @@ const createDeepEqualSelector = createSelectorCreator(defaultMemoize, _.isEqual)
 
 const allowedOpts = ['joins']
 
-window.findRecordCalls = 0
-window.buildRecordCalls = 0
-window.whereCalls = 0
-
 const sanitizeOpts = (opts) => {
   if (!_.isObject(opts)) return null
   if (!utils.intersects(Object.keys(opts), allowedOpts)) return null
@@ -38,7 +34,6 @@ const getModel = (key) => {
 }
 
 const findRecords = (state, kind, opts = {}) => {
-  window.findRecordCalls += 1
   const {model, defaultJoins} = getModel(kind)
   if (!opts) opts = {}
   if (defaultJoins) {
@@ -53,9 +48,6 @@ const findRecords = (state, kind, opts = {}) => {
   return state.records[kind]
 }
 
-window.allSecs = 0
-window.allSecsSpecific = {}
-
 export const all = createCachedSelector(
   findRecords,
   (state, key) => sanitizeKind(key),
@@ -64,24 +56,13 @@ export const all = createCachedSelector(
 )({keySelector: (state, key, opts = {}) => `${key}-${JSON.stringify(opts)}`, selectorCreator: createDeepEqualSelector})
 
 const _buildRecords = (ents, key, opts) => {
-  const startTime = performance.now()
-  window.buildRecordCalls += 1
   const records = ents && _.isPlainObject(ents) ? ents : {[key]: ents} // deletedStamps is always present, tells us if we hae all ents or just a slice. This is needed for findRecords' performance
   const finalRecords = buildRecords(records, key, opts) || []
-
-  const endTime = performance.now()
-  const elapsedTimeInSeconds = (endTime - startTime) / 1000
-  window.allSecs += elapsedTimeInSeconds
-  if (!window.allSecsSpecific[key]) window.allSecsSpecific[key] = 0
-  window.allSecsSpecific[key] += elapsedTimeInSeconds
 
   return finalRecords
 }
 
 const defaultArr = []
-
-window.joinSecs = 0
-window.assocSecs = 0
 
 const buildRecords = (ents = {}, key, opts = {}) => {
   // console.log(`All. key: ${key}`, ents, opts)
@@ -92,21 +73,14 @@ const buildRecords = (ents = {}, key, opts = {}) => {
 
   joinKeys.forEach((k) => {
     const mergeItems = enrichRecords(ents, k)
-    const startTime = performance.now()
     final = joins({items: final, mergeItems, tableName: key, mergeTableName: k})
-    window.joinSecs += secsElapsed(startTime)
   })
 
-  const startTime = performance.now()
   const assoc = config.createAssociation(final.map((i) => buildFullRecord(i, key, joinKeys)))
-  window.assocSecs += secsElapsed(startTime)
   return assoc
 }
 
-window.fullRecordSecs = 0
-
 const buildFullRecord = (item, key, joinKeys) => {
-  const startTime = performance.now()
   const record = buildClassRecord(item, key)
   joinKeys.forEach((joinKey) => {
     const isMultiple = checkMultiple(key, joinKey)
@@ -118,16 +92,7 @@ const buildFullRecord = (item, key, joinKeys) => {
     }
   })
 
-  const endTime = performance.now()
-  const elapsedTimeInSeconds = (endTime - startTime) / 1000
-  window.fullRecordSecs += elapsedTimeInSeconds
   return record
-}
-
-const secsElapsed = (startTime) => {
-  const endTime = performance.now()
-  const elapsedTimeInSeconds = (endTime - startTime) / 1000
-  return elapsedTimeInSeconds
 }
 
 const buildClassRecord = (item, key) => {
@@ -136,12 +101,8 @@ const buildClassRecord = (item, key) => {
   return model ? new model(item) : item
 }
 
-window.enrichSecs = 0
-
 const enrichRecords = (ents, key) => {
-  const startTime = performance.now()
   const val = config.enrichRecords(ents, key) || ents[key]
-  window.enrichSecs += secsElapsed(startTime)
   return val
 }
 
@@ -167,23 +128,13 @@ export const includes = createCachedSelector(
   (records, key, query) => includesRecord(records, query) || [],
 )((state, key, query) => `${key}-${JSON.stringify(query)}`)
 
-window.whereSecs = 0
 export const where = createCachedSelector(
   allExternal,
   (state, key) => key,
   (state, key, query) => query,
   (state, key, query, opts) => opts || '',
   (records, key, query, opts) => {
-    window.whereCalls += 1
-    const startTime = performance.now()
-
-    // console.log(`running where. Model: ${key}, query: ${JSON.stringify(query)}, opts: ${JSON.stringify(opts)}`)
     const val = query ? filterRecords(records, query, opts) : records || []
-
-    const endTime = performance.now()
-    const elapsedTimeInSeconds = (endTime - startTime) / 1000
-    window.whereSecs += elapsedTimeInSeconds
-
     return val
   },
 )({keySelector: (state, key, query, opts) => `${key}-${JSON.stringify(query)}-${opts}`, selectorCreator: createDeepEqualSelector})

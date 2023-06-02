@@ -8,12 +8,6 @@ import {config} from './config'
 import pluralize from 'pluralize'
 import {filterRecord} from './actions'
 
-const secsElapsed = (startTime) => {
-  const endTime = performance.now()
-  const elapsedTimeInSeconds = (endTime - startTime) / 1000
-  return elapsedTimeInSeconds
-}
-
 export const joins = ({tableName, mergeTableName, ...rest}) => {
   tableName = pluralize.singular(tableName)
   mergeTableName = pluralize.singular(mergeTableName)
