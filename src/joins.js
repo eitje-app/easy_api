@@ -13,6 +13,7 @@ export const joins = ({tableName, mergeTableName, ...rest}) => {
   mergeTableName = pluralize.singular(mergeTableName)
   const args = {...rest, tableName, mergeTableName}
   const fieldName = figureOutFieldName(args)
+
   if (!fieldName) return rest.items
   const isMultiple = checkMultiple(tableName, mergeTableName)
   const snakeTablename = utils.camelToSnake(tableName)
@@ -75,7 +76,7 @@ const extendMultiMainLeading = ({items, mergeItemLeading, fieldName, mergeTableN
 
   const pluralName = pluralize.plural(mergeTableName)
   return items.map((i) => {
-    const relevantItems = i[fieldName].map((i2) => mergeItemsIndex[i2])
+    const relevantItems = i[fieldName].map((i2) => mergeItemsIndex[i2]).filter(Boolean)
     return {...i, [pluralName]: relevantItems}
   })
 }
