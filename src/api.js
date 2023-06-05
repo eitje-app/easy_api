@@ -3,7 +3,7 @@ import utils from '@eitje/utils'
 import {config} from './config'
 import _ from 'lodash'
 import pluralize from 'pluralize'
-import {getDelStamp, getActionVersion, getStamps, afterIndex} from './helpers'
+import {getDelStamp, getActionVersion, getStamps, makeCacheKind, afterIndex} from './helpers'
 import {upload} from './files'
 import {sanitizeMoment, deepTransformValues} from './backend'
 const {store, indexUrls, createUrls, updateUrls, deleteUrls, afterAdd} = config
@@ -92,13 +92,6 @@ const handleLayered = (items, callback) => {
     const convertedKind = utils.snakeToCamel(_kind)
     callback(convertedKind, items[_kind])
   })
-}
-
-const makeCacheKind = (kind, filters) => {
-  if (!utils.exists(filters)) return kind
-  const sanitizedFilters = deepTransformValues(filters, sanitizeMoment)
-  const sortedStringified = JSON.stringify(sanitizedFilters, Object.keys(filters).sort()) // we sort to ensure order of keys doesn't matter
-  return `${kind}-${sortedStringified}`
 }
 
 export async function index(
