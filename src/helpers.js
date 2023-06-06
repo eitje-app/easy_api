@@ -32,7 +32,6 @@ export const newGetStamps = ({name, inverted, cacheName}) => {
   const allItems = state.records[name]
   if (!utils.exists(allItems)) return {}
   let items = allItems.filter((i) => i.fetchedKinds && i.fetchedKinds.includes(cacheName))
-  debugger
   obj['lastUpdatedStamp'] = findStamp(items, 'updated_at', inverted)
 
   if (customStampField) {

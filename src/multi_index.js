@@ -30,7 +30,6 @@ export const buildReduxPayload = (state, payload) => {
 		obj['records'][resource.name] = items
 		obj['actionVersions'][resource.name] = resource.action_version
 	})
-	debugger
 	return obj
 }
 
@@ -64,7 +63,7 @@ const buildReduxResource = (data, state) => {
 
 	indexItems = _.uniqBy(indexItems, 'id')
 
-	return items
+	return indexItems
 }
 
 // {items:, destroyed_ids:, removed_from_scope_ids:, name: }
@@ -103,7 +102,6 @@ const buildResourceParams = (props) => {
 
 	let currentIds = currentItems._map('id')
 	const unscopedIds = allItems.filter((i) => !utils.exists(i.fetchedKinds))._map('id')
-	debugger
 	const actionVersion = getActionVersion(name)
 
 	let condParams = {}
