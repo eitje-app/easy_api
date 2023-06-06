@@ -6,6 +6,8 @@ import pluralize from 'pluralize'
 import {getDelStamp, getActionVersion, getStamps, makeCacheKind, afterIndex} from './helpers'
 import {upload} from './files'
 import {sanitizeMoment, deepTransformValues} from './backend'
+import {multiIndex} from './multi_index'
+export {multiIndex}
 const {store, indexUrls, createUrls, updateUrls, deleteUrls, afterAdd} = config
 
 const handleErrors = (data) => {
