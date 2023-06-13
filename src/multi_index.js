@@ -77,7 +77,7 @@ const transformMultiResponse = (resp, params) => {
 	// we're currently passing 'refresh' and 'cacheName' as params.. we shouldn't send em to the back, just keep em here.
 	// afterIndex is skipped for now
 	const {refresh, cacheName, name} = params
-	let {items = [], action_version, destroyed_ids = [], removed_from_scope_ids = [], deleted_stamp} = resp
+	let {items = [], action_version, destroyed_ids = [], removed_from_scope_ids = []} = resp
 
 	items = newAfterIndex({items, cacheName})
 

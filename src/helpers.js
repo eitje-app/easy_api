@@ -8,11 +8,6 @@ export const filterRelevant = (kind, items, extraParams = {}, cacheKind) => {
   return config.filterStampItems ? config.filterStampItems(kind, items, extraParams) : items
 }
 
-export const getDelStamp = (kind) => {
-  const state = config.store.getState()
-  return state.records.deletedStamps?.[kind]
-}
-
 export const getActionVersion = (kind) => {
   const state = config.store.getState()
   return state.records.actionVersions?.[kind]
