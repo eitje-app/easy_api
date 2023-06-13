@@ -64,7 +64,7 @@ const buildReduxResource = (data, state) => {
 		? items
 		: utils.findAndReplace({
 				oldItems,
-				items,
+				newItems: items,
 				mapFunc: mapFetchedKinds,
 		  })
 
