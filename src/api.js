@@ -3,9 +3,11 @@ import utils from '@eitje/utils'
 import {config} from './config'
 import _ from 'lodash'
 import pluralize from 'pluralize'
-import {getDelStamp, getActionVersion, getStamps, afterIndex} from './helpers'
+import {getActionVersion, getStamps, makeCacheKind, afterIndex} from './helpers'
 import {upload} from './files'
 import {sanitizeMoment, deepTransformValues} from './backend'
+import {multiIndex} from './multi_index'
+export {multiIndex}
 const {store, indexUrls, createUrls, updateUrls, deleteUrls, afterAdd} = config
 
 const handleErrors = (data) => {
@@ -94,13 +96,6 @@ const handleLayered = (items, callback) => {
   })
 }
 
-const makeCacheKind = (kind, filters) => {
-  if (!utils.exists(filters)) return kind
-  const sanitizedFilters = deepTransformValues(filters, sanitizeMoment)
-  const sortedStringified = JSON.stringify(sanitizedFilters, Object.keys(filters).sort()) // we sort to ensure order of keys doesn't matter
-  return `${kind}-${sortedStringified}`
-}
-
 export async function index(
   kind,
   {ignoreStamp, inverted, localKind, refresh, overrideCacheKind, localForce, ignoreDelStamp, userFilter, filters = {}, params = {}} = {},
@@ -120,7 +115,6 @@ export async function index(
   let currentIds = currentItems.map((i) => i.id)
   const unscopedIds = allItems.filter((i) => !utils.exists(i.fetchedKinds)).map((i) => i.id) // we wanna include pushered and other non-fetched items to ensure they still exist
 
-  const deletedStamp = ignoreDelStamp || refresh ? null : getDelStamp(camelKind)
   const actionVersion = getActionVersion(camelKind)
   let condParams = {}
 
@@ -134,7 +128,6 @@ export async function index(
     ...params,
     ...stamps,
     ...condParams,
-    deletedStamp,
     action_version: actionVersion,
     direction: inverted && 'older',
   }
@@ -149,7 +142,7 @@ export async function index(
   if (res.ok) {
     let {data} = res
     data = data || {}
-    const {items = [], force, action_version, destroyed_ids = [], removed_from_scope_ids = [], deleted_stamp} = data
+    const {items = [], force, action_version, destroyed_ids = [], removed_from_scope_ids = []} = data
     let mappedItems = items
     const hasForce = force || localForce || refresh
     mappedItems = afterIndex(kind, items, {localKind: overrideCacheKind || cacheKind})
@@ -158,7 +151,6 @@ export async function index(
         type: 'INDEX_RECORDS',
         force: hasForce,
         items: mappedItems,
-        deletedStamp: deleted_stamp,
         kind: createKind,
         delKind: camelKind,
         destroyed_ids,
@@ -410,8 +402,5 @@ export async function removeRelaton(kind, id, relName, value) {
 }
 
 export const clearCache = (name, deletedKinds = [name]) => {
-  const stamps = {}
-  deletedKinds.forEach((k) => (stamps[k] = undefined))
-  store.dispatch({type: 'CLEAR_CACHE', kind: name, deletedStamps: stamps})
-  // utils.toast(t("success"))
+  store.dispatch({type: 'CLEAR_CACHE', kind: name})
 }
