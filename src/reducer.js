@@ -49,7 +49,6 @@ export default function reduce(state = initialState, action) {
       }
     case 'MULTI_INDEX':
       const {records, actionVersions} = buildReduxPayload(state, action.payload)
-      debugger
       return {
         ...state,
         ...records,
