@@ -161,6 +161,10 @@ function handleErrors(res) {
   let errs = res.data?.errors || res.errors
   if (res.status > 400 && !errs) errs = res.data
 
+  if (!config.isProd && errs?.exception) {
+    return config.alert(config.t('oops'), errs.exception)
+  }
+
   if (errs && !errs?.exception) {
     setErrors(errs)
     return
