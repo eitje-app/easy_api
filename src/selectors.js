@@ -34,12 +34,12 @@ const getModel = (key) => {
 }
 
 const findRecords = (state, kind, opts = {}) => {
+  kind = sanitizeKind(kind)
   const {model, defaultJoins} = getModel(kind)
   if (!opts) opts = {}
   if (defaultJoins) {
     opts = {...opts, joins: utils.composeArray(opts.joins, defaultJoins)}
   }
-  kind = sanitizeKind(kind)
 
   if (utils.exists(opts.joins)) {
     return _.pick(state.records, [kind, ...opts.joins])
