@@ -88,8 +88,10 @@ const indexRegex = /\/index$/
 
 const isIndexUrl = (req) => {
   const {indexUrls = {}} = config
+
   const urls = Object.values(indexUrls)
   const url = req.config?.url || req.url
+  if (!url) return
   return url.match(indexRegex) || urls.includes(url)
 }
 
