@@ -27,6 +27,12 @@ const createDeepEqualSelector = createSelectorCreator(
   _.isEqual
 );
 
+// 217 > 101
+// ({[key]: records[key]}): 217
+// _.pick(records, 'key'): 217
+// records[key]: 41
+// state.records: 101
+
 const allowedOpts = ["joins"];
 
 const sanitizeOpts = (opts) => {
