@@ -46,6 +46,25 @@ const getModel = (key) => {
   return { model, defaultJoins: model?.defaultJoins };
 };
 
+const flattenJoins = (joins) => {
+  let result = [];
+
+  function traverse(current) {
+    if (_.isString(current)) {
+      result.push(current);
+    } else if (Array.isArray(current) || _.isPlainObject(current)) {
+      _.forEach(current, (value, key) => {
+        if (_.isPlainObject(current)) result.push(key);
+        traverse(value);
+      });
+    }
+  }
+
+  traverse(joins);
+
+  return _.uniq(result);
+};
+
 const findRecords = (state, kind, opts = {}) => {
   kind = sanitizeKind(kind);
   const { model, defaultJoins } = getModel(kind);
@@ -55,7 +74,8 @@ const findRecords = (state, kind, opts = {}) => {
   }
 
   if (utils.exists(opts.joins)) {
-    return _.pick(state.records, [kind, ...opts.joins]);
+    const joins = flattenJoins(opts.joins);
+    return _.pick(state.records, [kind, ...joins]);
   }
 
   return state.records[kind];
@@ -81,27 +101,106 @@ const _buildRecords = (ents, key, opts) => {
 const defaultArr = [];
 
 const buildRecords = (ents = {}, key, opts = {}) => {
-  // console.log(`All. key: ${key}`, ents, opts)
   if (!_.isObject(opts)) opts = {};
-  const { model, defaultJoins } = getModel(key);
-  const joinKeys = utils.composeArray(opts.joins, defaultJoins);
+  const { defaultJoins } = getModel(key);
+  let joinKeys = utils.composeArray(opts.joins, defaultJoins);
   let final = enrichRecords(ents, key) || defaultArr;
 
-  joinKeys.forEach((k) => {
-    const mergeItems = enrichRecords(ents, k);
-    final = joins({
-      items: final,
-      mergeItems,
-      tableName: key,
-      mergeTableName: k,
+  if (opts.test) {
+    const joinKeys = buildNestedStructure(opts.joins, key);
+
+    const nestedJoins = joinKeys.map((k) => {
+      const currentJoins = _.reduce(
+        k.children,
+        (acc, child) => {
+          const items = acc.length ? acc : enrichRecords(ents, child.parent);
+          const mergeItems = enrichRecords(ents, child.key);
+          console.log(child.parent, child.key);
+          return joins({
+            items,
+            mergeItems,
+            tableName: child.parent,
+            mergeTableName: child.key,
+          });
+        },
+        []
+      );
+
+      return { k, currentJoins };
     });
-  });
+
+    _.forEach(nestedJoins, (nested) => {
+      const mergeItems = nested.currentJoins.length
+        ? nested.currentJoins
+        : enrichRecords(ents, nested.k.key);
+      final = joins({
+        items: final,
+        mergeItems,
+        tableName: key,
+        mergeTableName: nested.k.key,
+      });
+    });
+    console.log(final);
+    return [];
+  } else {
+    joinKeys.forEach((k) => {
+      const mergeItems = enrichRecords(ents, k);
+      final = joins({
+        items: final,
+        mergeItems,
+        tableName: key,
+        mergeTableName: k,
+      });
+    });
+  }
 
   const assoc = config.createAssociation(
     final.map((i) => buildFullRecord(i, key, joinKeys))
   );
   return assoc;
 };
+
+function buildNestedStructure(input, parentKey = null, depth = 0) {
+  let nodes = [];
+
+  if (_.isString(input)) {
+    return [{ key: input, parent: parentKey, depth: depth, children: [] }];
+  } else if (_.isArray(input)) {
+    input.forEach((item) => {
+      nodes = nodes.concat(buildNestedStructure(item, parentKey, depth));
+    });
+    return nodes;
+  } else if (_.isObject(input)) {
+    _.forOwn(input, (value, key) => {
+      const children = buildNestedStructure(value, key, depth + 1);
+      const node = {
+        key: key,
+        parent: parentKey,
+        depth: depth,
+        children: children,
+      };
+      nodes.push(node);
+    });
+    return nodes;
+  }
+
+  return nodes;
+}
+
+function embedChildren(nodes) {
+  const nodeMap = {};
+  nodes.forEach((node) => {
+    nodeMap[node.key] = { ...node, children: [] };
+  });
+
+  nodes.forEach((node) => {
+    if (node.parent) {
+      nodeMap[node.parent].children.push(nodeMap[node.key]);
+    }
+  });
+
+  return Object.values(nodeMap).filter((node) => node.depth === 0);
+}
 
 const buildFullRecord = (item, key, joinKeys) => {
   const record = buildClassRecord(item, key);
