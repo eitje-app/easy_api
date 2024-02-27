@@ -1,10 +1,10 @@
-import {Fragment} from 'react'
+import { Fragment } from "react";
 
-const noop = (i) => i
-const emptyFunc = (i) => null
-let empty = {}
-const translator = (t) => t
-const baseURL = 'http://localhost:3000'
+const noop = (i) => i;
+const emptyFunc = (i) => null;
+let empty = {};
+const translator = (t) => t;
+const baseURL = "http://localhost:3000";
 
 const defaultConfig = {
   t: translator,
@@ -30,22 +30,22 @@ const defaultConfig = {
   Association: null,
   ApplicationRecord: null,
   models: {},
-}
+};
 
 const createAssociation = (arr) => {
-  if (!config.Association) return arr
-  return new config.Association(arr)
-}
+  if (!config.Association) return arr;
+  return new config.Association(arr);
+};
 
 const createApplicationRecord = (item) => {
-  if (!config.ApplicationRecord) return item
-  return new config.ApplicationRecord(arr)
-}
+  if (!config.ApplicationRecord) return item;
+  return new config.ApplicationRecord(arr);
+};
 
-let config = {...defaultConfig, createAssociation, createApplicationRecord}
+let config = { ...defaultConfig, createAssociation, createApplicationRecord };
 
 const setup = (obj) => {
-  config = {...config, ...obj}
-}
+  config = { ...config, ...obj };
+};
 
-export {setup, config}
+export { setup, config };
