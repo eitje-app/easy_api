@@ -146,24 +146,23 @@ const buildRecords = (entities = {}, key, opts = {}) => {
   return associatedRecords;
 };
 
-function buildNestedStructure(input, parentKey = null, depth = 0) {
+function buildNestedStructure(input, parentKey = null) {
   let nodes = [];
 
   if (_.isString(input)) {
-    return [{ key: input, parent: parentKey, depth: depth, children: [] }];
+    return [{ key: input, parent: parentKey, children: [] }];
   } else if (_.isArray(input)) {
     input.forEach((item) => {
-      nodes = nodes.concat(buildNestedStructure(item, parentKey, depth));
+      nodes = nodes.concat(buildNestedStructure(item, parentKey));
     });
     return nodes;
   } else if (_.isObject(input)) {
     _.forOwn(input, (value, key) => {
-      const children = buildNestedStructure(value, key, depth + 1);
+      const children = buildNestedStructure(value, key);
       const node = {
         key: key,
         parent: parentKey,
-        depth: depth,
-        children: children,
+        children,
       };
       nodes.push(node);
     });
