@@ -21,7 +21,7 @@ import joins, { checkMultiple } from "./joins";
 const sanitizeKind = (kind) => pluralize(utils.snakeToCamel(kind));
 
 const authUserSelector = (state) => state.auth.user;
-const usersSelector = (state) => state.records.users;
+
 const createDeepEqualSelector = createSelectorCreator(
   defaultMemoize,
   _.isEqual
