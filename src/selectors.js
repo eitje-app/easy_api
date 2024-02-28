@@ -92,46 +92,66 @@ const _buildRecords = (ents, key, opts) => {
   return finalRecords;
 };
 
+const makeNestedJoins = ({ children, records, entities }) => {
+  return children.reduce((acc, child) => {
+    const parentRecords = acc.length ? acc : records;
+    const childRecords = enrichRecords(entities, child.key);
+    return joins({
+      items: parentRecords,
+      mergeItems: childRecords,
+      tableName: child.parent,
+      mergeTableName: child.key,
+    });
+  }, []);
+};
+
+const buildNestedFullRecords = ({ joinKey, children, nestedJoins }) => {
+  return nestedJoins.map((record) =>
+    buildFullRecord(
+      record,
+      joinKey,
+      children.map((c) => c.key)
+    )
+  );
+};
+
 const defaultArr = [];
 
-const buildRecords = (entities = {}, key, opts = {}) => {
-  opts = _.isObject(opts) ? opts : {};
-  const { defaultJoins = [] } = getModel(key) || {};
+const joinsMapper = ({ joinKeys, entities, key }) => {
   let finalRecords = enrichRecords(entities, key) || defaultArr;
-  const joinsArray = utils.composeArray(defaultJoins, opts.joins);
-  const joinKeys = buildNestedStructure(joinsArray, key);
 
   joinKeys.forEach(({ key: joinKey, children }) => {
-    const enrichedJoins = children.reduce((acc, child) => {
-      const parentRecords = acc.length
-        ? acc
-        : enrichRecords(entities, child.parent);
-      const childRecords = enrichRecords(entities, child.key);
-      return joins({
-        items: parentRecords,
-        mergeItems: childRecords,
-        tableName: child.parent,
-        mergeTableName: child.key,
-      });
-    }, []);
+    const records = enrichRecords(entities, joinKey);
+    const nestedJoins = makeNestedJoins({ children, records, entities });
+    const fullRecords = buildNestedFullRecords({
+      joinKey,
+      children,
+      nestedJoins,
+    });
 
-    const fullRecords = enrichedJoins.map((record) =>
-      buildFullRecord(
-        record,
-        joinKey,
-        children.map((c) => c.key)
-      )
-    );
+    const hasJoinsThrough = fullRecords.length;
 
     finalRecords = joins({
       items: finalRecords,
-      mergeItems: fullRecords.length
+      mergeItems: hasJoinsThrough
         ? fullRecords
         : enrichRecords(entities, joinKey),
       tableName: key,
       mergeTableName: joinKey,
     });
   });
+
+  return finalRecords;
+};
+
+const buildRecords = (entities = {}, key, opts = {}) => {
+  opts = _.isObject(opts) ? opts : {};
+  const { defaultJoins = [] } = getModel(key) || {};
+  const joinsArray = utils.composeArray(defaultJoins, opts.joins);
+  const joinKeys = buildNestedStructure(joinsArray, key);
+
+  const finalRecords = joinsMapper({ joinKeys, entities, key });
+  opts.test && console.log(finalRecords);
 
   const associatedRecords = config.createAssociation(
     finalRecords.map((record) =>
@@ -155,18 +175,16 @@ function buildNestedStructure(input, parentKey = null) {
     input.forEach((item) => {
       nodes = nodes.concat(buildNestedStructure(item, parentKey));
     });
-    return nodes;
   } else if (_.isObject(input)) {
     _.forOwn(input, (value, key) => {
       const children = buildNestedStructure(value, key);
       const node = {
-        key: key,
+        key,
         parent: parentKey,
         children,
       };
       nodes.push(node);
     });
-    return nodes;
   }
 
   return nodes;
