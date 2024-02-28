@@ -80,7 +80,7 @@ const buildRecords = (allRecords = {}, key, opts = {}) => {
       )
     )
   );
-  opts.test && console.log(associatedRecords);
+
   return associatedRecords;
 };
 
