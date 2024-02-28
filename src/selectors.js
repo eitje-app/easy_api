@@ -149,9 +149,7 @@ const buildRecords = (entities = {}, key, opts = {}) => {
   const { defaultJoins = [] } = getModel(key) || {};
   const joinsArray = utils.composeArray(defaultJoins, opts.joins);
   const joinKeys = buildNestedStructure(joinsArray, key);
-
   const finalRecords = joinsMapper({ joinKeys, entities, key });
-  opts.test && console.log(finalRecords);
 
   const associatedRecords = config.createAssociation(
     finalRecords.map((record) =>
