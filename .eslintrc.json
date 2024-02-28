@@ -22,7 +22,6 @@
     "no-redeclare": "error",
     "react/prop-types": "off",
     "react/jsx-key": "off",
-    "react/display-name": "off",
-    "react-hooks/rules-of-hooks": "error"
+    "react/display-name": "off"
   }
 }

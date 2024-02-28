@@ -1,10 +1,9 @@
-import React, {useState, useEffect, Fragment} from 'react'
-import {useSelector} from 'react-redux'
-import {all} from '../index'
+import { useSelector } from "react-redux";
+import { all } from "../all_selector";
 
 export const useAll = (kind, opts) => {
-  const items = useSelector((state) => all(state, kind, opts))
-  return items
-}
+  const items = useSelector((state) => all(state, kind, opts));
+  return items;
+};
 
-export default useAll
+export default useAll;
