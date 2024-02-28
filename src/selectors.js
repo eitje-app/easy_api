@@ -92,10 +92,10 @@ const _buildRecords = (ents, key, opts) => {
   return finalRecords;
 };
 
-const makeNestedJoins = ({ children, records, entities }) => {
+const makeNestedJoins = ({ children, records, allRecords }) => {
   return children.reduce((acc, child) => {
     const parentRecords = acc.length ? acc : records;
-    const childRecords = enrichRecords(entities, child.key);
+    const childRecords = enrichRecords(allRecords, child.key);
     return joins({
       items: parentRecords,
       mergeItems: childRecords,
@@ -117,12 +117,12 @@ const buildNestedFullRecords = ({ joinKey, children, nestedJoins }) => {
 
 const defaultArr = [];
 
-const joinsMapper = ({ joinKeys, entities, key }) => {
-  let finalRecords = enrichRecords(entities, key) || defaultArr;
+const joinsMapper = ({ joinKeys, allRecords, key }) => {
+  let finalRecords = enrichRecords(allRecords, key) || defaultArr;
 
   joinKeys.forEach(({ key: joinKey, children }) => {
-    const records = enrichRecords(entities, joinKey);
-    const nestedJoins = makeNestedJoins({ children, records, entities });
+    const records = enrichRecords(allRecords, joinKey);
+    const nestedJoins = makeNestedJoins({ children, records, allRecords });
     const fullRecords = buildNestedFullRecords({
       joinKey,
       children,
@@ -135,7 +135,7 @@ const joinsMapper = ({ joinKeys, entities, key }) => {
       items: finalRecords,
       mergeItems: hasJoinsThrough
         ? fullRecords
-        : enrichRecords(entities, joinKey),
+        : enrichRecords(allRecords, joinKey),
       tableName: key,
       mergeTableName: joinKey,
     });
@@ -144,12 +144,12 @@ const joinsMapper = ({ joinKeys, entities, key }) => {
   return finalRecords;
 };
 
-const buildRecords = (entities = {}, key, opts = {}) => {
+const buildRecords = (allRecords = {}, key, opts = {}) => {
   opts = _.isObject(opts) ? opts : {};
   const { defaultJoins = [] } = getModel(key) || {};
   const joinsArray = utils.composeArray(defaultJoins, opts.joins);
   const joinKeys = buildNestedStructure(joinsArray, key);
-  const finalRecords = joinsMapper({ joinKeys, entities, key });
+  const finalRecords = joinsMapper({ joinKeys, allRecords, key });
 
   const associatedRecords = config.createAssociation(
     finalRecords.map((record) =>
