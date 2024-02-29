@@ -93,3 +93,8 @@ export const afterIndex = (kind, items = [], { localKind }) => {
     ? config.afterIndex(kind, items, { localKind })
     : items;
 };
+
+export const getModel = (key) => {
+  const model = config.models[key];
+  return { model, defaultJoins: model?.defaultJoins };
+};
