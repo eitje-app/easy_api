@@ -76,9 +76,9 @@ const extendMultiMainLeading = ({items, mergeItemLeading, fieldName, mergeTableN
 
   const pluralName = pluralize.plural(mergeTableName)
   return items.map(i => {
-    let relevantItems = i[fieldName] || []
+    let relevantItems = i[fieldName]
     if (!relevantItems.map) relevantItems = []
-    relevantItems.map(i2 => mergeItemsIndex[i2]).filter(Boolean)
+    relevantItems = relevantItems.map(i2 => mergeItemsIndex[i2]).filter(Boolean)
     return {...i, [pluralName]: relevantItems}
   })
 }
