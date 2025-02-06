@@ -1,34 +1,34 @@
 {
-  "name": "@eitje/easy_api",
-  "version": "3.0.25",
-  "description": "Easy communcation between a modern front-end application & a RESTful API",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel src -d dist"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/eitje-app/easy_api.git"
-  },
-  "author": "Abel van Hoek",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/eitje-app/easy_api/issues"
-  },
-  "homepage": "https://github.com/eitje-app/easy_api#readme",
-  "peerDependencies": {
-    "@eitje/react-hooks": "1.x"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.12.1",
-    "@babel/core": "^7.12.3",
-    "@babel/plugin-proposal-class-properties": "^7.12.1",
-    "@babel/plugin-proposal-object-rest-spread": "^7.12.1",
-    "@babel/plugin-proposal-optional-chaining": "^7.12.1",
-    "@babel/preset-env": "^7.12.1",
-    "@babel/preset-react": "^7.12.1",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react": "^7.33.2"
-  }
+	"name": "@eitje/easy_api",
+	"version": "3.0.26",
+	"description": "Easy communcation between a modern front-end application & a RESTful API",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "babel src -d dist"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/eitje-app/easy_api.git"
+	},
+	"author": "Abel van Hoek",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/eitje-app/easy_api/issues"
+	},
+	"homepage": "https://github.com/eitje-app/easy_api#readme",
+	"peerDependencies": {
+		"@eitje/react-hooks": "1.x"
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.12.1",
+		"@babel/core": "^7.12.3",
+		"@babel/plugin-proposal-class-properties": "^7.12.1",
+		"@babel/plugin-proposal-object-rest-spread": "^7.12.1",
+		"@babel/plugin-proposal-optional-chaining": "^7.12.1",
+		"@babel/preset-env": "^7.12.1",
+		"@babel/preset-react": "^7.12.1",
+		"eslint": "^8.57.0",
+		"eslint-plugin-react": "^7.33.2"
+	}
 }
