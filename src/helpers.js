@@ -79,5 +79,5 @@ export const afterIndex = (kind, items = [], {localKind}) => {
 
 export const getModel = key => {
 	const model = config.models[key]
-	return {model, defaultJoins: model?.defaultJoins}
+	return {model, defaultJoins: model?.defaultJoins, sort: model?.sort}
 }

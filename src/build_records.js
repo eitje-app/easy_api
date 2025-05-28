@@ -127,7 +127,22 @@ const buildClassRecord = (item, key) => {
 	return model ? new model(item) : item
 }
 
+const sortRecords = (items, sort) => {
+	if (!_.isPlainObject(sort)) {
+		return _.orderBy(items, sort)
+	}
+
+	const {field, direction} = sort
+	return _.orderBy(items, field, direction)
+}
+
 const enrichRecords = (ents, key) => {
-	const val = config.enrichRecords(ents, key) || ents[key]
+	let val = config.enrichRecords(ents, key) || ents[key]
+	const {sort} = getModel(key)
+
+	if (sort) {
+		val = sortRecords(val, sort)
+	}
+
 	return val
 }
