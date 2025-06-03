@@ -142,12 +142,16 @@ const normalizeRecords = (item, field) => {
 }
 
 const sortRecords = (items, sort) => {
-	if (!_.isPlainObject(sort)) {
-		return _.orderBy(items, item => normalizeRecords(item, sort))
-	}
+	const sorts = _.isArray(sort) ? sort : [sort]
 
-	const {field, direction} = sort
-	return _.orderBy(items, item => normalizeRecords(item, field), direction)
+	const iteratees = sorts.map(sortCriteria => {
+		const field = !_.isPlainObject(sortCriteria) ? sortCriteria : sortCriteria.field
+		return item => normalizeRecords(item, field)
+	})
+
+	const orders = sorts.map(sortCriteria => sortCriteria?.direction || 'asc')
+
+	return _.orderBy(items, iteratees, orders)
 }
 
 const enrichRecords = (ents, key) => {
