@@ -127,21 +127,35 @@ const buildClassRecord = (item, key) => {
 	return model ? new model(item) : item
 }
 
+const normalizeRecords = (item, field) => {
+	const val = _.get(item, field)
+
+	if (_.isString(val)) {
+		return val
+			.replace(/\s+/g, '')
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '') // accents & diacritics
+	}
+
+	return val
+}
+
 const sortRecords = (items, sort) => {
 	if (!_.isPlainObject(sort)) {
-		return _.orderBy(items, sort)
+		return _.orderBy(items, item => normalizeRecords(item, sort))
 	}
 
 	const {field, direction} = sort
-	return _.orderBy(items, field, direction)
+	return _.orderBy(items, item => normalizeRecords(item, field), direction)
 }
 
 const enrichRecords = (ents, key) => {
-	let val = config.enrichRecords(ents, key) || ents[key]
+	const val = config.enrichRecords(ents, key) || ents[key]
 	const {sort} = getModel(key)
 
 	if (sort) {
-		val = sortRecords(val, sort)
+		return sortRecords(val, sort)
 	}
 
 	return val
