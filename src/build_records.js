@@ -142,6 +142,8 @@ const normalizeRecords = (item, field) => {
 }
 
 const sortRecords = (items, sort) => {
+	if (_.isFunction(sort)) return _.orderBy(items, sort)
+
 	const sorts = _.isArray(sort) ? sort : [sort]
 
 	const iteratees = sorts.map(sortCriteria => {
@@ -149,7 +151,9 @@ const sortRecords = (items, sort) => {
 		return item => normalizeRecords(item, field)
 	})
 
-	const orders = sorts.map(sortCriteria => sortCriteria?.direction || 'asc')
+	const orders = sorts.map(sortCriteria => {
+		return sortCriteria?.direction || 'asc'
+	})
 
 	return _.orderBy(items, iteratees, orders)
 }
