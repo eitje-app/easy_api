@@ -64,8 +64,14 @@ const isRange = i => _.isObject(i) && i.start && i.start instanceof moment
 const hasArray = arr => arr.some(i => _.isArray(i))
 
 const filterRanges = (queryVal, recordVal) => {
+	if (_.isFunction(recordVal)) recordVal = recordVal()
+
 	const args = [queryVal, recordVal]
-	if (isRange(queryVal) && isRange(recordVal)) return queryVal.overlaps(recordVal)
+
+	if (isRange(queryVal) && isRange(recordVal)) {
+		return queryVal.overlaps(recordVal)
+	}
+
 	const stringVal = args.find(a => _.isString(a)) // dates are always sent to us as strings
 	const rangeVal = args.find(a => isRange(a))
 	if (!rangeVal || !stringVal) return
