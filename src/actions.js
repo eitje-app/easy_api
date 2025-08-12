@@ -1,20 +1,6 @@
 import _ from 'lodash'
 import moment from 'moment'
 
-export const includesRecord = (entities, query) => {
-	return entities.filter(e => {
-		const keys = Object.keys(query) // [1,2,3,4]
-		return keys.every(k => query[k].some(id => e[k] && e[k].includes(id)))
-	})
-}
-
-export const filterByDate = (entities, {start, end}, {dateField = 'date'} = {}) => {
-	return entities.filter(e => {
-		if (start && end) return e[dateField] >= start && e[dateField] <= end
-		if (start) return e[dateField] >= start
-		return e[dateField] <= end
-	})
-}
 
 export const findRecord = (entities, query) => {
 	return entities.find(e => {
@@ -23,8 +9,6 @@ export const findRecord = (entities, query) => {
 		return filterKeys(keys, query, e)
 	})
 }
-
-// exact: literally compare both values, no array/range magic
 
 export const filterRecords = (entities, query, options) => {
 	return entities.filter(e => {
@@ -50,6 +34,10 @@ const filterKeys = (keys, query, record, options) => {
 	})
 }
 
+const isRange = i => _.isObject(i) && i.start && i.start instanceof moment
+const hasRange = arr => arr.some(i => isRange(i))
+const hasArray = arr => arr.some(i => _.isArray(i))
+
 export const filterRecord = (queryVal, recordVal, {exact} = {}) => {
 	const args = [queryVal, recordVal]
 	queryVal = sanitizeVal(queryVal)
@@ -58,10 +46,6 @@ export const filterRecord = (queryVal, recordVal, {exact} = {}) => {
 	if (hasRange(args)) return filterRanges(queryVal, recordVal)
 	return _.isEqual(queryVal, recordVal)
 }
-
-const hasRange = arr => arr.some(i => isRange(i))
-const isRange = i => _.isObject(i) && i.start && i.start instanceof moment
-const hasArray = arr => arr.some(i => _.isArray(i))
 
 const filterRanges = (queryVal, recordVal) => {
 	if (_.isFunction(recordVal)) recordVal = recordVal()
@@ -101,4 +85,3 @@ function filterArrays(arr1, arr2) {
 	if (_.isArray(arr2)) return arr2.includes(arr1)
 }
 
-const numberOrString = val => _.isNumber(val) || _.isString(val)

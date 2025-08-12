@@ -56,13 +56,9 @@ const extendSingular = ({items, mergeTableName, mergeItems, mergeItemLeading, sp
 	return res
 }
 
-const extendMulti = args => {
-	const {items, mergeItemLeading, fieldName, mergeTableName, mergeItems} = args
-	const res = mergeItemLeading ? extendMultiMergeLeading(args) : extendMultiMainLeading(args)
-	return res
-}
+const extendMulti = args => args.mergeItemLeading ? extendMultiMergeLeading(args) : extendMultiMainLeading(args)
 
-const extendMultiMainLeading = ({items, mergeItemLeading, fieldName, mergeTableName, mergeItems}) => {
+const extendMultiMainLeading = ({items, fieldName, mergeTableName, mergeItems}) => {
 	const mergeItemsIndex = mergeItems.reduce((index, item) => {
 		index[item.id] = item
 		return index
@@ -77,7 +73,7 @@ const extendMultiMainLeading = ({items, mergeItemLeading, fieldName, mergeTableN
 	})
 }
 
-const extendMultiMergeLeading = ({items, fieldName, mergeItemLeading, mergeTableName, mergeItems}) => {
+const extendMultiMergeLeading = ({items, fieldName, mergeTableName, mergeItems}) => {
 	const isMultiple = fieldName.endsWith('s')
 	const mergeItemsIndex = mergeItems.reduce((index, item) => {
 		const val = item[fieldName]
@@ -102,11 +98,3 @@ const extendMultiMergeLeading = ({items, fieldName, mergeItemLeading, mergeTable
 }
 
 export default joins
-
-// export const newExtendSelector = createCachedSelector(
-//   all,
-//   (state, tableName) => tableName,
-//   (state, tableName, items) => items,
-//   (state, tableName, items, opts = {}) => opts,
-//   (mergeItems, tableName, items, opts) => newExtend(items, tableName, mergeItems, opts),
-// )

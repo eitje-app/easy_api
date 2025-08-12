@@ -1,9 +1,9 @@
-import {api as backend} from './backend'
-import {getActionVersion, newGetStamps, makeCacheKind, newAfterIndex} from './helpers'
+import { api as backend } from '../backend'
+import { getActionVersion, makeCacheKind, getStamps, afterIndex } from '../helpers'
 import utils from '@eitje/utils'
-import {config} from './config'
+import { config } from '../config'
 import _ from 'lodash'
-import {mapFetchedKinds} from './reducer'
+import { mapFetchedKinds } from '../reducer'
 
 export const multiIndex = async resources => {
 	let payloadObj = {}
@@ -81,7 +81,7 @@ const transformMultiResponse = (resp, params) => {
 	const {refresh, cacheName, name} = params
 	let {items = [], action_version, destroyed_ids = [], removed_from_scope_ids = []} = resp
 
-	items = newAfterIndex({items, cacheName})
+	items = afterIndex({items, cacheName})
 
 	const force = resp.force || refresh
 
@@ -104,7 +104,7 @@ const buildResourceParams = props => {
 	const name = utils.snakeToCamel(props.name)
 	const cacheName = makeCacheKind(name, filters)
 
-	const {stamps = {}, currentItems = [], allItems = []} = refresh ? {} : newGetStamps({name, inverted, cacheName})
+	const {stamps = {}, currentItems = [], allItems = []} = refresh ? {} : getStamps({name, inverted, cacheName})
 
 	let currentIds = currentItems._map('id')
 	const unscopedIds = allItems.filter(i => !utils.exists(i.fetchedKinds))._map('id')

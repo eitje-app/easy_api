@@ -1,7 +1,7 @@
 import utils from '@eitje/utils'
 import _ from 'lodash'
 import {config} from './config'
-import {buildReduxPayload} from './multi_index'
+import {buildReduxPayload} from './api/multi_index'
 const initialState = {
 	actionVersions: {},
 }
@@ -42,11 +42,6 @@ export default function reduce(state = initialState, action) {
 				...keepRecords,
 			}
 
-		case 'CLEAR_CACHE':
-			return {
-				...state,
-				[action.kind]: [],
-			}
 		case 'MULTI_INDEX':
 			const {records, actionVersions} = buildReduxPayload(state, action.payload)
 			return {
@@ -147,18 +142,7 @@ export default function reduce(state = initialState, action) {
 				[action.kind]: sortFunc(delItems, action.kind),
 			}
 
-		case 'ADD_RECORDS':
-			let items = [...state[action.kind]]
-			action.items.forEach(i => {
-				i.fetchedKinds = undefined
-				items = utils.findAndReplace(items, i)
-			})
-			return {
-				...state,
-				[action.kind]: sortFunc(items, action.kind),
-			}
-
 		default:
-			return config.extendReducer(state, action) || state
+			return state
 	}
 }

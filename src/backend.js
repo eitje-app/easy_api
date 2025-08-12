@@ -24,7 +24,6 @@ const createApi = () => {
 	api.addRequestTransform(sanitizeParams)
 
 	api.addMonitor(authMonitor)
-	//
 	api.addMonitor(endLoad)
 	api.addMonitor(handleErrors)
 	if (config.reportSuccess) api.addMonitor(reportSuccess)
@@ -132,18 +131,13 @@ const reportError = errors => {
 		const errs = _.flatten(Object.values(errors))
 		err = errs[0]
 	} else {
-		err = _.isString(errors) ? errors : t('unexpectedIssue')
+		err = _.isString(errors) ? errors : config.t('unexpectedIssue')
 	}
 	if (!_.isString(err)) return
 	config.alert(config.t('oops'), err)
 }
 
-function reportValidationErrs(errors) {
-	const {t, alert} = config
-	if (!_.isObject(errors)) return
-	const newErrors = Object.values(errors).map(err => err[0])
-	newErrors.map(e => alert(t('oops'), e))
-}
+
 
 const restStatusses = [410]
 
@@ -181,7 +175,6 @@ function handleErrors(res) {
 function reportSuccess(req) {
 	if (isIndexUrl(req)) return
 	const data = getDataForMonitor(req)
-	const heads = req.config.headers || {}
 	if (req.config.method != 'get' && req.ok && req.status <= 300 && !data?.doNotLoad && !data?.skipSuccessNotif) {
 		config.success()
 		console.log(req)
@@ -201,4 +194,5 @@ const getDataForMonitor = req => {
 }
 
 export default createApi
-export {api}
+const backend = api
+export {api, backend}

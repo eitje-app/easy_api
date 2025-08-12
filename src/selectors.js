@@ -1,9 +1,8 @@
-import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
+import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect'
 import createCachedSelector from 're-reselect'
-import moment from 'moment'
 import _ from 'lodash'
-import {findRecord, inverseFilterRecords, filterRecords, includesRecord, filterByDate} from './actions'
-import {all, allExternal} from './all_selector'
+import { findRecord, inverseFilterRecords, filterRecords } from './actions'
+import { all, allExternal } from './all_selector'
 
 const authUserSelector = state => state.auth.user
 
@@ -24,13 +23,6 @@ export const find = createCachedSelector(
 	keySelector: (state, key, query) => `${key}-${JSON.stringify(query)}`,
 	selectorCreator: createDeepEqualSelector,
 })
-
-export const includes = createCachedSelector(
-	allExternal,
-	(state, key) => key,
-	(state, key, query) => query,
-	(records, key, query) => includesRecord(records, query) || [],
-)((state, key, query) => `${key}-${JSON.stringify(query)}`)
 
 export const where = createCachedSelector(
 	allExternal,
@@ -53,15 +45,3 @@ export const whereNot = createCachedSelector(
 	(records, key, query) => inverseFilterRecords(records, query) || [],
 )((state, key, query) => `${key}-${JSON.stringify(query)}`)
 
-export const betweenDays = createCachedSelector(
-	allExternal,
-	(state, key) => key,
-	(state, key, query) => query,
-	(records, key, query) => filterByDate(records, query),
-)((state, key, query) => `${key}-${JSON.stringify(query)}`)
-
-export const afterToday = createCachedSelector(
-	allExternal,
-	(state, key) => key,
-	records => filterByDate(records, {start: moment().format('YYYY-MM-DD')}),
-)((state, key) => key)
